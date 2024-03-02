@@ -1,0 +1,13 @@
+{
+    "digi": {
+        "callsign": "NOCALL-1",
+        "symbol_code": "#",
+        "symbol_table": "L",
+        "aprs_comment": "LightTracker Plus LoRa APRS Digipeater  by TA2MUN & TA3YNS",
+        "use_gps_if_possible": true,
+        "gps_timeout": 60,          
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "send_digi_location": true
+    }
+}

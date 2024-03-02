@@ -1,0 +1,17 @@
+{
+	"debug": true,
+	"device_mode": 1,
+	"metric_system": true,
+	"temperature_sensor_correction": -5.0,
+	"humidity_sensor_correction": 20,
+	"lora": {
+		"frequency_rx": 433.775,
+		"frequency_tx": 433.775,
+		"power": 22,
+		"spreading_factor": 12,
+		"signal_bandwidth": 125,
+		"coding_rate4": 5,
+		"preamble_length": 8,
+		"crc": true
+	}	
+}

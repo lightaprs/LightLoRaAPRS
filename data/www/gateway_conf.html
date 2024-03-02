@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gateway Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Gateway (iGate) Configuration</h1>
+        <form id="updateForm">
+            <div class="section">
+                <h2>iGate Configuration</h2>
+                <div class="form-group">
+                    <label for="callsign">Callsign:</label>
+                    <input type="text" id="callsign" name="callsign">
+                </div>
+                <div class="form-group">
+                    <label for="aprs_comment">APRS Comment:</label>
+                    <input type="text" id="aprs_comment" name="aprs_comment">
+                </div>
+                <div class="form-group">
+                    <label for="use_gps_if_possible">Use GPS if Possible:</label>
+                    <input type="checkbox" id="use_gps_if_possible" name="use_gps_if_possible">
+                </div>
+                <div class="form-group">
+                    <label for="gps_timeout">GPS Timeout:</label>
+                    <input type="number" id="gps_timeout" name="gps_timeout">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude:</label>
+                    <input type="text" id="latitude" name="latitude">
+                </div>
+                <div class="form-group">
+                    <label for="longitude">Longitude:</label>
+                    <input type="text" id="longitude" name="longitude">
+                </div>
+                <div class="form-group">
+                    <label for="weather_station">Weather Station:</label>
+                    <input type="checkbox" id="weather_station" name="weather_station">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>APRS-IS Configuration</h2>
+                <div class="form-group">
+                    <label for="active_aprs_is">Active:</label>
+                    <input type="checkbox" id="active_aprs_is" name="active_aprs_is">
+                </div>
+                <div class="form-group">
+                    <label for="passcode">Passcode:</label>
+                    <input type="text" id="passcode" name="passcode">
+                </div>
+                <div class="form-group">
+                    <label for="auto_server">Auto Server:</label>
+                    <input type="checkbox" id="auto_server" name="auto_server">
+                </div>
+                <div class="form-group">
+                    <label for="server">Server:</label>
+                    <input type="text" id="server" name="server">
+                </div>
+                <div class="form-group">
+                    <label for="port">Port:</label>
+                    <input type="number" id="port" name="port">
+                </div>
+                <div class="form-group">
+                    <label for="filter">Filter:</label>
+                    <input type="text" id="filter" name="filter">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>WiFi Configuration</h2>
+                <div class="form-group">
+                    <label for="active_wifi">Active:</label>
+                    <input type="checkbox" id="active_wifi" name="active_wifi">
+                </div>                
+                <div class="form-group">
+                    <label for="ssid">SSID:</label>
+                    <input type="text" id="ssid" name="ssid">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Network Configuration</h2>
+                <div class="form-group">
+                    <label for="dhcp">Use DHCP:</label>
+                    <input type="checkbox" id="dhcp" name="dhcp">
+                </div>
+                <div class="form-group">
+                    <label for="ip">Static IP:</label>
+                    <input type="text" id="ip" name="ip">
+                </div>
+                <div class="form-group">
+                    <label for="subnet">Subnet:</label>
+                    <input type="text" id="subnet" name="subnet">
+                </div>
+                <div class="form-group">
+                    <label for="gateway">Gateway:</label>
+                    <input type="text" id="gateway" name="gateway">
+                </div>
+                <div class="form-group">
+                    <label for="dns1">DNS 1:</label>
+                    <input type="text" id="dns1" name="dns1">
+                </div>
+                <div class="form-group">
+                    <label for="dns2">DNS 2:</label>
+                    <input type="text" id="dns2" name="dns2">
+                </div>
+                <div class="form-group">
+                    <label for="overwrite">Overwrite Hostname:</label>
+                    <input type="checkbox" id="overwrite" name="overwrite">
+                </div>
+                <div class="form-group">
+                    <label for="name">Hostname:</label>
+                    <input type="text" id="name" name="name">
+                </div>
+            </div>     
+            <button type="submit">Update Gateway Configuration</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div><h3><a href="gateway_conf_json_fetch">JSON File</a></h3></div>
+        <div><h3><a href="/">Home</a></h3></div>                
+    </div>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Fetch the JSON data from the server
+    fetch('/gateway_conf_json_fetch') // Replace with the actual URL
+        .then(response => response.json())
+        .then(data => {
+                // Populate the form fields with data
+                document.getElementById('callsign').value = data.igate.callsign;
+                document.getElementById('aprs_comment').value = data.igate.aprs_comment;
+                document.getElementById('use_gps_if_possible').checked = data.igate.use_gps_if_possible;
+                document.getElementById('gps_timeout').value = data.igate.gps_timeout;
+                document.getElementById('latitude').value = data.igate.latitude;
+                document.getElementById('longitude').value = data.igate.longitude;
+                document.getElementById('weather_station').checked = data.igate.weather_station;
+
+                document.getElementById('active_aprs_is').checked = data.aprs_is.active;
+                document.getElementById('passcode').value = data.aprs_is.passcode;
+                document.getElementById('auto_server').checked = data.aprs_is.auto_server;
+                document.getElementById('server').value = data.aprs_is.server;
+                document.getElementById('port').value = data.aprs_is.port;
+                document.getElementById('filter').value = data.aprs_is.filter;
+
+                document.getElementById('active_wifi').checked = data.wifi.active;
+                document.getElementById('ssid').value = data.wifi.ssid;
+                document.getElementById('password').value = data.wifi.password;
+
+                document.getElementById('dhcp').checked = data.network.dhcp;
+                document.getElementById('ip').value = data.network.static.ip;
+                document.getElementById('subnet').value = data.network.static.subnet;
+                document.getElementById('gateway').value = data.network.static.gateway;
+                document.getElementById('dns1').value = data.network.static.dns1;
+                document.getElementById('dns2').value = data.network.static.dns2;
+
+
+                document.getElementById('overwrite').checked = data.network.hostname.overwrite;
+                document.getElementById('name').value = data.network.hostname.name;
+
+
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+
+document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Collect the form data and construct the updated JSON
+    const updatedData = {
+        igate: {
+                callsign: document.getElementById('callsign').value,
+                aprs_comment: document.getElementById('aprs_comment').value,
+                use_gps_if_possible: document.getElementById('use_gps_if_possible').checked,
+                gps_timeout: parseInt(document.getElementById('gps_timeout').value),
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                weather_station: document.getElementById('weather_station').checked,
+            },
+            aprs_is: {
+                active: document.getElementById('active_aprs_is').checked,
+                passcode: document.getElementById('passcode').value,
+                auto_server: document.getElementById('auto_server').checked,
+                server: document.getElementById('server').value,
+                port: parseInt(document.getElementById('port').value),
+                filter: document.getElementById('filter').value,
+            },
+            wifi: {
+                active: document.getElementById('active_wifi').checked,
+                ssid: document.getElementById('ssid').value,
+                password: document.getElementById('password').value,
+            },
+            network: {
+                dhcp: document.getElementById('dhcp').checked,
+                static: {
+                    ip: document.getElementById('ip').value,
+                    subnet: document.getElementById('subnet').value,
+                    gateway: document.getElementById('gateway').value,
+                    dns1: document.getElementById('dns1').value,
+                    dns2: document.getElementById('dns2').value,
+                },
+                hostname: {
+                    overwrite: document.getElementById('overwrite').checked,
+                    name: document.getElementById('name').value,
+                },
+            }
+};
+
+    // Send the updated JSON data to the server
+    const url = '/post_gateway_conf_json_update';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the result in the 'result' div
+        const resultDiv = document.getElementById('result');
+        //resultDiv.textContent = JSON.stringify(data);
+        resultDiv.textContent = data.result;
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('error');
+        //errorDiv.textContent = 'Error: ' + error;
+        errorDiv.textContent = 'Error: ' + data.error;
+        console.error('Error:', error);
+    });
+});
+    </script>
+</body>
+
+
+</html>

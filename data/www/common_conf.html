@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Common Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Common Configuration</h1>
+        <form id="updateForm">
+            <div class="section">
+                <h2>General Configuration</h2>
+                <div class="form-group">
+                    <label for="debug">Debug:</label>
+                    <input type="checkbox" id="debug" name="debug">
+                </div>
+                <div class="form-group">
+                    <label for="device_mode">Device Mode:</label>                    
+                    <select name="device_mode" type="number" id="device_mode">
+                        <option value="1">Tracker</option>
+                        <option value="2">iGate (Gateway)</option>
+                        <option value="3">Digi (Router)</option>
+                    </select> 
+                </div>
+                <div class="form-group">
+                    <label for="metric_system">Metric System:</label>
+                    <input type="checkbox" id="metric_system" name="metric_system">
+                </div>
+                <div class="form-group">
+                    <label for="temperature_sensor_correction">Temperature Sensor Correction:</label>
+                    <input type="text" id="temperature_sensor_correction" name="temperature_sensor_correction">
+                </div>
+                <div class="form-group">
+                    <label for="humidity_sensor_correction">Humidity Sensor Correction:</label>
+                    <input type="text" id="humidity_sensor_correction" name="humidity_sensor_correction">
+                </div>                   
+            </div>
+
+            <div class="section">
+                <h2>LoRa Configuration</h2>
+                <div class="form-group">
+                    <label for="frequency_rx">Frequency (RX):</label>
+                    <input type="text" id="frequency_rx" name="frequency_rx">
+                </div>
+                <div class="form-group">
+                    <label for="frequency_tx">Frequency (TX):</label>
+                    <input type="text" id="frequency_tx" name="frequency_tx">
+                </div>
+                <div class="form-group">
+                    <label for="power">Power:</label>
+                    <input type="number" id="power" name="power">
+                </div>
+                <div class="form-group">
+                    <label for="spreading_factor">Spreading Factor:</label>
+                    <input type="number" id="spreading_factor" name="spreading_factor">
+                </div>
+                <div class="form-group">
+                    <label for="signal_bandwidth">Signal Bandwidth:</label>
+                    <input type="number" id="signal_bandwidth" name="signal_bandwidth">
+                </div>
+                <div class="form-group">
+                    <label for="coding_rate4">Coding Rate 4:</label>
+                    <input type="number" id="coding_rate4" name="coding_rate4">
+                </div>
+                <div class="form-group">
+                    <label for="preamble_length">Preamble Length:</label>
+                    <input type="number" id="preamble_length" name="preamble_length">
+                </div>
+                <div class="form-group">
+                    <label for="crc">CRC:</label>
+                    <input type="checkbox" id="crc" name="crc">
+                </div>
+            </div>
+
+            <button type="submit">Update Common Configuration</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div><h3><a href="common_conf_json_fetch">JSON File</a></h3></div>
+        <div><h3><a href="/">Home</a></h3></div>
+    </div>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch the JSON data from the server
+    fetch('/common_conf_json_fetch')
+        .then(response => response.json())
+        .then(data => {
+            // Populate the form fields with the retrieved data
+            document.getElementById('debug').checked = data.debug;
+            document.getElementById('device_mode').value = data.device_mode;
+            document.getElementById('metric_system').checked = data.metric_system;
+            document.getElementById('temperature_sensor_correction').value = data.temperature_sensor_correction;
+            document.getElementById('humidity_sensor_correction').value = data.humidity_sensor_correction;
+            document.getElementById('frequency_rx').value = data.lora.frequency_rx;
+            document.getElementById('frequency_tx').value = data.lora.frequency_tx;
+            document.getElementById('power').value = data.lora.power;
+            document.getElementById('spreading_factor').value = data.lora.spreading_factor;
+            document.getElementById('signal_bandwidth').value = data.lora.signal_bandwidth;
+            document.getElementById('coding_rate4').value = data.lora.coding_rate4;
+            document.getElementById('preamble_length').value = data.lora.preamble_length;
+            document.getElementById('crc').checked = data.lora.crc;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+});
+
+document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const updatedData = {
+    debug: document.getElementById('debug').checked,
+    device_mode: parseInt(document.getElementById('device_mode').value),
+    metric_system: document.getElementById('metric_system').checked,
+    temperature_sensor_correction: parseFloat(document.getElementById('temperature_sensor_correction').value),
+    humidity_sensor_correction: parseFloat(document.getElementById('humidity_sensor_correction').value),
+    lora: {
+        frequency_rx: parseFloat(document.getElementById('frequency_rx').value),
+        frequency_tx: parseFloat(document.getElementById('frequency_tx').value),
+        power: parseInt(document.getElementById('power').value),
+        spreading_factor: parseInt(document.getElementById('spreading_factor').value),
+        signal_bandwidth: parseInt(document.getElementById('signal_bandwidth').value),
+        coding_rate4: parseInt(document.getElementById('coding_rate4').value),
+        preamble_length: parseInt(document.getElementById('preamble_length').value),
+        crc: document.getElementById('crc').checked,
+    },
+};
+
+    // Send the updated JSON data to the server
+    const url = '/post_common_conf_json_update';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the result in the 'result' div
+        const resultDiv = document.getElementById('result');
+        //resultDiv.textContent = JSON.stringify(data);
+        resultDiv.textContent = data.result;
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('error');
+        //errorDiv.textContent = 'Error: ' + error;
+        errorDiv.textContent = 'Error: ' + data.error;
+        console.error('Error:', error);
+    });
+});
+    </script>
+</body>
+
+
+</html>

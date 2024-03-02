@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Tracker Configuration</h1>
+        <form id="updateForm">
+            <div class="section">
+                <h2>Beacon Configuration</h2>
+                <div class="form-group">
+                    <label for="callsign">Callsign:</label>
+                    <input type="text" id="callsign" name="callsign">
+                </div>
+                <div class="form-group">
+                    <label for="symbol_code">Symbol Code:</label>
+                    <input type="text" id="symbol_code" name="symbol_code">
+                </div>
+                <div class="form-group">
+                    <label for="symbol_table">Symbol Table:</label>
+                    <input type="text" id="symbol_table" name="symbol_table">
+                </div>
+                <div class="form-group">
+                    <label for="path">Path:</label>
+                    <input type="text" id="path" name="path">
+                </div>
+                <div class="form-group">
+                    <label for="non_smart_interval">Non-Smart Interval:</label>
+                    <input type="number" id="non_smart_interval" name="non_smart_interval">
+                </div>
+                <div class="form-group">
+                    <label for="gps_mode">GPS Mode:</label>                    
+                    <select name="gps_mode" type="number" id="gps_mode">
+                        <option value="0">Normal</option>
+                        <option value="1">Fitness</option>
+                        <option value="2">Aviation</option>
+                        <option value="3">Balloon</option>
+                    </select>                     
+                </div>
+                <div class="form-group">
+                    <label for="send_altitude">Send Altitude:</label>
+                    <input type="checkbox" id="send_altitude" name="send_altitude">
+                </div>
+                <div class="form-group">
+                    <label for="send_tx_count">Send TX Count:</label>
+                    <input type="checkbox" id="send_tx_count" name="send_tx_count">
+                </div>
+                <div class="form-group">
+                    <label for="send_temperature">Send Temperature:</label>
+                    <input type="checkbox" id="send_temperature" name="send_temperature">
+                </div>
+                <div class="form-group">
+                    <label for="send_humidity">Send Humidity:</label>
+                    <input type="checkbox" id="send_humidity" name="send_humidity">
+                </div>
+                <div class="form-group">
+                    <label for="send_battery_info">Send Battery Info:</label>
+                    <input type="checkbox" id="send_battery_info" name="send_battery_info">
+                </div>
+                <div class="form-group">
+                    <label for="send_comment_after_x_beacons">Send Comment After X Beacons:</label>
+                    <input type="number" id="send_comment_after_x_beacons" name="send_comment_after_x_beacons">
+                </div>
+                <div class="form-group">
+                    <label for="aprs_comment">APRS Comment:</label>
+                    <input type="text" id="aprs_comment" name="aprs_comment">
+                </div>
+                <div class="form-group">
+                    <label for="status_message">Status Message:</label>
+                    <input type="text" id="status_message" name="status_message">
+                </div>  
+            </div>
+
+            <div class="section">
+                <h2>Smart Beacon Configuration</h2>
+                <div class="form-group">
+                    <label for="active">Active:</label>
+                    <input type="checkbox" id="active" name="active">
+                </div>
+                <div class="form-group">
+                    <label for="low_speed">Low Speed (km/h):</label>
+                    <input type="number" id="low_speed" name="low_speed">
+                </div>
+                <div class="form-group">
+                    <label for="slow_rate">Slow Rate (sec.):</label>
+                    <input type="number" id="slow_rate" name="slow_rate">
+                </div>
+                <div class="form-group">
+                    <label for="high_speed">High Speed (km/h):</label>
+                    <input type="number" id="high_speed" name="high_speed">
+                </div>
+                <div class="form-group">
+                    <label for="fast_rate">Fast Rate (sec):</label>
+                    <input type="number" id="fast_rate" name="fast_rate">
+                </div>
+                <div class="form-group">
+                    <label for="turn_min_angle">Turn Min Angle:</label>
+                    <input type="number" id="turn_min_angle" name="turn_min_angle">
+                </div>
+                <div class="form-group">
+                    <label for="turn_slope">Turn Slope:</label>
+                    <input type="number" id="turn_slope" name="turn_slope">
+                </div>
+                <div class="form-group">
+                    <label for="turn_min_time">Turn Min Time:</label>
+                    <input type="number" id="turn_min_time" name="turn_min_time">
+                </div>
+                <div class="form-group">
+                    <label for="check_battery_voltage">Check Battery Voltage:</label>
+                    <input type="checkbox" id="check_battery_voltage" name="check_battery_voltage">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Power Configuration</h2>
+                <div class="form-group">
+                    <label for="deep_sleep">Deep Sleep:</label>
+                    <input type="checkbox" id="deep_sleep" name="deep_sleep">
+                </div>
+            </div>            
+
+            <button type="submit">Update Tracker Configuration</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div><h3><a href="tracker_conf_json_fetch">JSON File</a></h3></div>
+        <div><h3><a href="/">Home</a></h3></div>        
+    </div>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Fetch the JSON data from the server
+    fetch('/tracker_conf_json_fetch') // Replace with the actual URL
+        .then(response => response.json())
+        .then(data => {
+            // Populate the form with the received JSON data
+            const beacon = data.beacon;
+            const smartBeacon = data.smart_beacon;
+            const power = data.power;
+
+            // Beacon Configuration
+            document.getElementById('callsign').value = beacon.callsign;
+            document.getElementById('symbol_code').value = beacon.symbol_code;
+            document.getElementById('symbol_table').value = beacon.symbol_table;
+            document.getElementById('path').value = beacon.path;
+            document.getElementById('non_smart_interval').value = beacon.non_smart_interval;
+            document.getElementById('gps_mode').value = beacon.gps_mode;
+            document.getElementById('send_altitude').checked = beacon.send_altitude;
+            document.getElementById('send_tx_count').checked = beacon.send_tx_count;
+            document.getElementById('send_temperature').checked = beacon.send_temperature;
+            document.getElementById('send_humidity').checked = beacon.send_humidity;
+            document.getElementById('send_battery_info').checked = beacon.send_battery_info;
+            document.getElementById('send_comment_after_x_beacons').value = beacon.send_comment_after_x_beacons;
+            document.getElementById('aprs_comment').value = beacon.aprs_comment;
+            document.getElementById('status_message').value = beacon.status_message;
+
+            // Smart Beacon Configuration
+            document.getElementById('active').checked = smartBeacon.active;
+            document.getElementById('low_speed').value = smartBeacon.low_speed;
+            document.getElementById('slow_rate').value = smartBeacon.slow_rate;
+            document.getElementById('high_speed').value = smartBeacon.high_speed;
+            document.getElementById('fast_rate').value = smartBeacon.fast_rate;
+            document.getElementById('turn_min_angle').value = smartBeacon.turn_min_angle;
+            document.getElementById('turn_slope').value = smartBeacon.turn_slope;
+            document.getElementById('turn_min_time').value = smartBeacon.turn_min_time;
+            document.getElementById('check_battery_voltage').checked = smartBeacon.check_battery_voltage;
+
+            // Power Configuration
+            document.getElementById('deep_sleep').checked = power.deep_sleep;
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+
+document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Collect the form data and construct the updated JSON
+    const updatedData = {
+    beacon: {
+        callsign: document.getElementById('callsign').value,
+        symbol_code: document.getElementById('symbol_code').value,
+        symbol_table: document.getElementById('symbol_table').value,
+        path: document.getElementById('path').value,
+        non_smart_interval: parseInt(document.getElementById('non_smart_interval').value),
+        gps_mode: parseInt(document.getElementById('gps_mode').value),
+        send_altitude: document.getElementById('send_altitude').checked,
+        send_tx_count: document.getElementById('send_tx_count').checked,
+        send_temperature: document.getElementById('send_temperature').checked,
+        send_humidity: document.getElementById('send_humidity').checked,
+        send_battery_info: document.getElementById('send_battery_info').checked,
+        send_comment_after_x_beacons: parseInt(document.getElementById('send_comment_after_x_beacons').value),
+        aprs_comment: document.getElementById('aprs_comment').value,
+        status_message: document.getElementById('status_message').value,
+    },
+    smart_beacon: {
+        active: document.getElementById('active').checked,
+        low_speed: parseInt(document.getElementById('low_speed').value),
+        slow_rate: parseInt(document.getElementById('slow_rate').value),
+        high_speed: parseInt(document.getElementById('high_speed').value),
+        fast_rate: parseInt(document.getElementById('fast_rate').value),
+        turn_min_angle: parseInt(document.getElementById('turn_min_angle').value),
+        turn_slope: parseInt(document.getElementById('turn_slope').value),
+        turn_min_time: parseInt(document.getElementById('turn_min_time').value),
+        check_battery_voltage: document.getElementById('check_battery_voltage').checked,
+    },
+    power: {
+        deep_sleep: document.getElementById('deep_sleep').checked,
+    }
+};
+
+    // Send the updated JSON data to the server
+    const url = '/post_tracker_conf_json_update';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the result in the 'result' div
+        const resultDiv = document.getElementById('result');
+        //resultDiv.textContent = JSON.stringify(data);
+        resultDiv.textContent = data.result;
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('error');
+        //errorDiv.textContent = 'Error: ' + error;
+        errorDiv.textContent = 'Error: ' + data.error;
+        console.error('Error:', error);
+    });
+});
+    </script>
+</body>
+
+
+</html>

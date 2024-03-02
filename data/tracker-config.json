@@ -1,0 +1,32 @@
+{	
+	"beacon": {
+			"callsign": "NOCALL-9",
+			"symbol_code": ">",
+			"symbol_table": "/",			
+			"path": "WIDE1-1",			
+			"non_smart_interval": 60,
+			"gps_mode":0,
+			"send_altitude": true,
+			"send_tx_count": false,
+			"send_temperature": true,
+			"send_humidity": true,
+			"send_battery_info": true,
+			"send_comment_after_x_beacons": 10,
+			"aprs_comment": "LoRa APRS LightTracker Plus by TA2MUN & TA3YNS",
+			"status_message": "LoRa APRS LightTracker Plus by TA2MUN & TA3YNS"
+	},
+	"smart_beacon": {
+		"active": true,
+		"low_speed": 10,
+		"slow_rate": 300,
+		"high_speed": 100,
+		"fast_rate": 30,
+		"turn_min_angle": 20,
+		"turn_slope": 180,
+		"turn_min_time": 30,
+		"check_battery_voltage": true
+	},
+	"power": {
+		"deep_sleep": false
+	}
+}

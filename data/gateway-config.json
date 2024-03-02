@@ -1,0 +1,38 @@
+{
+	"igate": {
+		"callsign": "NOCALL-10",			
+		"aprs_comment": "LightTracker Plus LoRa APRS iGate by TA2MUN & TA3YNS",
+		"use_gps_if_possible": true,
+		"gps_timeout": 60,			
+		"latitude": 0,
+		"longitude": 0,
+		"weather_station": false
+	},
+	"aprs_is": {
+		"active": true,
+		"passcode": "CHANGE_ME",
+		"auto_server": true,
+		"server": "rotate.aprs2.net",
+		"port": 14580,
+		"filter": ""
+	},
+	"wifi": {
+		"active": true,
+		"ssid": "CHANGE_ME",
+		"password": "CHANGE_ME"
+	},			
+	"network": {
+		"dhcp": true,
+		"static": {
+			"ip": "192.168.1.200",
+			"subnet": "255.255.255.0",
+			"gateway": "192.168.1.1",
+			"dns1": "192.168.1.1",
+			"dns2": "8.8.8.8"
+		},
+		"hostname": {
+			"overwrite": false,
+			"name": "iGate-10"
+		}
+	}
+}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Router (Digi) Configuration</h1>
+        <form id="updateForm">
+            <div class="section">
+                <h2>Digipeater Configuration</h2>
+                <div class="form-group">
+                    <label for="callsign">Callsign:</label>
+                    <input type="text" id="callsign" name="callsign">
+                </div>
+                <div class="form-group">
+                    <label for="symbol_code">Symbol Code:</label>
+                    <input type="text" id="symbol_code" name="symbol_code">
+                </div>
+                <div class="form-group">
+                    <label for="symbol_table">Symbol Table:</label>
+                    <input type="text" id="symbol_table" name="symbol_table">
+                </div>
+                <div class="form-group">
+                    <label for="aprs_comment">APRS Comment:</label>
+                    <input type="text" id="aprs_comment" name="aprs_comment">
+                </div>
+                <div class="form-group">
+                    <label for="use_gps_if_possible">Use GPS if Possible:</label>
+                    <input type="checkbox" id="use_gps_if_possible" name="use_gps_if_possible">
+                </div>
+                <div class="form-group">
+                    <label for="gps_timeout">GPS Timeout:</label>
+                    <input type="number" id="gps_timeout" name="gps_timeout">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude:</label>
+                    <input type="text" id="latitude" name="latitude">
+                </div>
+                <div class="form-group">
+                    <label for="longitude">Longitude:</label>
+                    <input type="text" id="longitude" name="longitude">
+                </div>
+                <div class="form-group">
+                    <label for="send_digi_location">Send Digipeater Location:</label>
+                    <input type="checkbox" id="send_digi_location" name="send_digi_location">
+                </div>
+            </div>
+            <button type="submit">Update Router Configuration</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div><h3><a href="router_conf_json_fetch">JSON File</a></h3></div>
+        <div><h3><a href="/">Home</a></h3></div>                
+    </div>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Fetch the JSON data from the server
+    fetch('/router_conf_json_fetch') // Replace with the actual URL
+        .then(response => response.json())
+        .then(data => {
+            // Populate the form fields with data
+            document.getElementById('callsign').value = data.digi.callsign;
+            document.getElementById('symbol_code').value = data.digi.symbol_code;
+            document.getElementById('symbol_table').value = data.digi.symbol_table;
+            document.getElementById('aprs_comment').value = data.digi.aprs_comment;
+            document.getElementById('use_gps_if_possible').checked = data.digi.use_gps_if_possible;
+            document.getElementById('gps_timeout').value = data.digi.gps_timeout;
+            document.getElementById('latitude').value = data.digi.latitude;
+            document.getElementById('longitude').value = data.digi.longitude;
+            document.getElementById('send_digi_location').checked = data.digi.send_digi_location;
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+
+document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Collect the form data and construct the updated JSON
+    const updatedData = {
+        digi: {
+                callsign: document.getElementById('callsign').value,
+                symbol_code: document.getElementById('symbol_code').value,
+                symbol_table: document.getElementById('symbol_table').value,
+                aprs_comment: document.getElementById('aprs_comment').value,
+                use_gps_if_possible: document.getElementById('use_gps_if_possible').checked,
+                gps_timeout: parseInt(document.getElementById('gps_timeout').value),
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                send_digi_location: document.getElementById('send_digi_location').checked,
+            }  
+};
+
+    // Send the updated JSON data to the server
+    const url = '/post_router_conf_json_update';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the result in the 'result' div
+        const resultDiv = document.getElementById('result');
+        //resultDiv.textContent = JSON.stringify(data);
+        resultDiv.textContent = data.result;
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('error');
+        //errorDiv.textContent = 'Error: ' + error;
+        errorDiv.textContent = 'Error: ' + data.error;
+        console.error('Error:', error);
+    });
+});
+    </script>
+</body>
+
+
+</html>
