@@ -130,7 +130,7 @@ void tasksendSmartBeaconTX(void * parameter){
             printFreeMEM();
         }
 
-    } else if (!gps.location.isValid()) {
+    } else if (!gps.location.isValid() && !(gps.satellites.value() > MIN_GPS_SATS)) {
         gpsSearchLedBlink();
         printGPSData();
         printTempHumidityData();
