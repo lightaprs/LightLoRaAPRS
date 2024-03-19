@@ -9,7 +9,7 @@ Main purpose of this basic software is to demonstrate capabilities of [LightTrac
 
 LightLoRaAPRS is an single firmware contains Tracker, iGate (Gateway) and Digi (Router) features. So you don't have to install a different firmware to switch from Tracker to iGate or Digipeater. All you need is to activate configuration mode and access to configuration page using your computer or smartphone via Wi-Fi. You will find more info about the software soon on Wiki page.
 
-![image](https://github.com/lightaprs/LightLoRaAPRS/assets/48382675/e11d728a-96d0-4e92-bd5c-eaba52eb33c2)
+![image](https://github.com/lightaprs/LightLoRaAPRS/assets/48382675/779b69c2-1d93-4b15-ada0-263bc05181e2)
 
 Also I am not planing to improve or add new features to this software. Ricardo Guzman is doing a great job and developing a great LoRa APRS software. So I hope he supports LightTracker Plus soon using this repo and so we can focus on designing new modules :)
 
