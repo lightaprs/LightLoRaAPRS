@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web (OTA) Firmware Update</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Web (OTA) Firmware Update</h1>
+        <form id="uploadForm" method='POST' action='/do_update' enctype='multipart/form-data'>
+            <input type='file' name='update'>
+            <input type='submit' value='Update'>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>        
+        <div><h4>Check out <a href="https://github.com/lightaprs/LightLoRaAPRS/wiki/Web-(OTA)-Firmware-Update">this wiki page</a> for detailed information.</h4></div> 
+        <div><h3><a href="/">Home</a></h3></div> 
+    </div>
+</body>
+
+<script>
+
+        function checkProgress() {
+            fetch('/check_update_progress') // Replace with the actual URL
+                .then(response => response.json())        
+                .then(data => {
+                // Display the result in the 'result' div
+                const updateProgress = document.getElementById('result');
+                updateProgress.textContent = 'Update Progress: %' + data.result;
+                })
+                .catch(error => {
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = 'Error: ' + data.error;
+                console.error('Error:', error);
+            });
+        }        
+
+        // Call checkProgress initially
+        checkProgress();
+        // Call checkProgress every second
+        setInterval(checkProgress, 1000);
+        </script>
+
+</html>

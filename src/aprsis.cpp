@@ -7,7 +7,7 @@
 #include "display.h"
 
 
-#define IGATE_PING_INTERVAL 1800
+#define IGATE_PING_INTERVAL 3600
 unsigned long last_igate_ping_time = 0;
 
 extern logging::Logger logger;
@@ -97,7 +97,7 @@ void sendDataToAPRSIS(String message) {
         show_display("\r\nWi-Fi ERROR",0,2);
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "Wi-Fi connection lost, message delivery failed. Wi-Fi Status: %d",WiFi.status());
     } else {      
-      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "APRS-IS connection lost, message delivery failed...");
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "APRS-IS connection lost...");
       show_display("\r\nReconnecting to APRS-IS",0,2);
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Reconnecting to APRS-IS..."); 
       aprs_is.connect(aprs_is_server, gatewayConfig.aprs_is.port, gatewayConfig.aprs_is.filter);
@@ -113,17 +113,40 @@ void sendDataToAPRSIS(String message) {
 
 }
 
-void refresh_APRS_IS_connection(){
+bool hasLostConnection() {
+  return gatewayConfig.digi.repeatAllPcktsNotConn && (WiFi.status() != WL_CONNECTED || !aprs_is.connected());
+}
+
+void checkAPRS_ISConnection(){
 
     if (WiFi.status() != WL_CONNECTED) {
       WiFi.disconnect();
       WiFi.reconnect();
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Reconnecting to Wi-Fi");
-      while(WiFi.status() != WL_CONNECTED)
+
+      unsigned long wifiFirstAttempt = millis();
+      bool connTimeOut = false;
+      while(WiFi.status() != WL_CONNECTED && !connTimeOut)
       {
         Serial.print(".");
         delay(500);
+        connTimeOut = (millis() - wifiFirstAttempt) > 10000;
+      }
+
+      if(!connTimeOut) {
+        show_display_println("\r\nWi-Fi reconnected..");
+        Serial.println("connected.");
+        Serial.print("Local IP: ");
+        Serial.print(WiFi.localIP());
+        Serial.print(" @ ");
+        Serial.print(WiFi.RSSI());
+        Serial.println("dBm");
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Wi-Fi", "Wi-Fi reconnected...");
+      } else {
+        show_display_println("\r\nWi-Fi ERROR");
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Wi-Fi", "Wi-Fi Connection failed, check SSID or password...");      
       }      
+ 
     }
 
     if (WiFi.status() == WL_CONNECTED && gatewayConfig.aprs_is.active && !aprs_is.connected()) {
@@ -135,10 +158,12 @@ void refresh_APRS_IS_connection(){
     if (millis() - last_igate_ping_time > IGATE_PING_INTERVAL * 1000) {
 
       bool success = Ping.ping(aprs_is_server.c_str());
-      if(!success){
+      if(WiFi.status() == WL_CONNECTED && ((gatewayConfig.aprs_is.active && !aprs_is.connected()) || (gatewayConfig.aprs_is.active && !success))){
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "refresh_APRS_IS_connection", "APRIS-IS server %s ping failed...",aprs_is_server);
           logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Restarting the EPS32...");
           esp_restart();
+      } else {
+        last_igate_ping_time = millis();
       }
 
     }

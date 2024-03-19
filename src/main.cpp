@@ -22,7 +22,7 @@
 #include "webserver.h"
 #include "button.h"
 
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 
 logging::Logger logger;
 TinyGPSPlus gps;
@@ -110,7 +110,7 @@ void setup_Gateway(){
     }
     
     //setup LoRa RX
-    show_display_print("\r\nLoRa RX init...");
+    show_display_print("\r\nLoRa init...");
     getSX126XRadio().setPacketReceivedAction(setRXFlag);
     setupRX();
 
@@ -127,7 +127,7 @@ void setup_Gateway(){
     } else {
       GpsOFF;
     }
-    if (gatewayConfig.wifi.active && gatewayConfig.aprs_is.active)
+    if (gatewayConfig.wifi.active && gatewayConfig.aprs_is.active && WiFi.status() == WL_CONNECTED)
     {
       setup_APRS_IS();
     }
@@ -135,7 +135,7 @@ void setup_Gateway(){
     setup_GatewayTasks();
     delay(1000);
 
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "iGate (RX Only) setup completed...");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "iGate setup completed...");
     
   }
 }
@@ -242,9 +242,9 @@ void setup_WiFi(){
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Wi-Fi", "Wi-Fi Setup completed...");
     } else {
       show_display_println("\r\nWi-Fi ERROR");
-      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Wi-Fi", "Wi-Fi Connection failed, check SSID or password...");      
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Wi-Fi", "Wi-Fi Connection failed, check SSID or password...");
+      delay(3000);      
     }
-
 
 }
 

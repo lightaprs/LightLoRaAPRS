@@ -103,6 +103,14 @@ public:
     boolean wx;
   };
 
+  class Digi {
+  public:
+    Digi() : repeatMssgOnly(true), repeatAllPcktsNotConn(true) {
+    } 
+    boolean repeatMssgOnly;
+    boolean repeatAllPcktsNotConn;
+  };
+
   class APRS_IS {
   public:
     APRS_IS() : active(true), server("euro.aprs2.net"), port(14580) {
@@ -155,6 +163,7 @@ public:
   ConfigurationGateway() {
   }
   IGate  igate;
+  Digi digi;
   APRS_IS aprs_is;
   Wifi    wifi;
   Network network;

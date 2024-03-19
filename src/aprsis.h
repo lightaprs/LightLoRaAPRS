@@ -7,6 +7,6 @@ static String aprs_is_server;
 
 void setup_APRS_IS();
 void sendDataToAPRSIS(String message);
-void refresh_APRS_IS_connection();
-
+void checkAPRS_ISConnection();
+bool hasLostConnection();
 #endif

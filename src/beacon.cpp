@@ -154,6 +154,10 @@ String getiGateLocationAPRSMessage() {
   String symbolTable = "L";
   String symbolCode = "&";
 
+  if(gatewayConfig.digi.repeatMssgOnly) {
+    symbolCode = "a";
+  }
+
   String aprsComment = gatewayConfig.igate.aprsComment;
   String message = gatewayConfig.igate.callsign +">APLIGP:!"+latitude+symbolTable+longitude+symbolCode+" "+aprsComment;
 
@@ -204,7 +208,11 @@ String getiGateStatusAPRSMessage(){
     rx_freq_str += String((char)rx_freq_buff[i]);
   }    
 
-  message += "RX Only LoRa iGate on "+rx_freq_str+"MHz";    
+  if(gatewayConfig.digi.repeatMssgOnly) {
+    message += "RX/TX LoRa iGate on "+rx_freq_str+"MHz";
+  } else {
+    message += "RX Only LoRa iGate on "+rx_freq_str+"MHz";
+  }
 
   if(!gatewayConfig.igate.wx) {
     float temperature = getTemperature();
@@ -584,7 +592,7 @@ void displayRegularBeaconInfo() {
 
   char newGrid6[9];
   calcLocator(newGrid6,gps.location.lat(),gps.location.lng(),8);
-  int nextTX = (int)((millis() - lastTX.millis)/1000);
+  int nextTX = trackerConfig.beacon.interval - (int)((millis() - lastTX.millis)/1000);
 
   show_display_six_lines_big_header(trackerConfig.beacon.callsign,
               "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),

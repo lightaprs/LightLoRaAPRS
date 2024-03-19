@@ -195,6 +195,9 @@ ConfigurationGateway ConfigurationManagement::readGatewayConfiguration() {
     conf.igate.longitude        = data["igate"]["longitude"] | 0.0;
     conf.igate.wx               = data["igate"]["weather_station"] | true;
 
+    conf.digi.repeatMssgOnly          = data["digi"]["repeat_aprs_messages_only"] | true;
+    conf.digi.repeatAllPcktsNotConn   = data["digi"]["repeat_all_packets_if_aprsis_not_connected"] | true;
+
     conf.aprs_is.active         = data["aprs_is"]["active"] | true;
     conf.aprs_is.passcode       = data["aprs_is"]["passcode"].as<String>();
     conf.aprs_is.autoServer     = data["aprs_is"]["auto_server"] | true;
@@ -235,6 +238,9 @@ void ConfigurationManagement::writeGatewayConfiguration(ConfigurationGateway con
     data["igate"]["latitude"]             = conf.igate.latitude;
     data["igate"]["longitude"]            = conf.igate.longitude;
     data["igate"]["weather_station"]      = conf.igate.wx;
+
+    data["digi"]["repeat_aprs_messages_only"]                   = conf.digi.repeatMssgOnly;
+    data["digi"]["repeat_all_packets_if_aprsis_not_connected"]  = conf.digi.repeatAllPcktsNotConn;
 
     data["aprs_is"]["active"]             = conf.aprs_is.active;    
     data["aprs_is"]["passcode"]           = conf.aprs_is.passcode;

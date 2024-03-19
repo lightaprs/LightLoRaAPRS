@@ -20,7 +20,8 @@ static uint16_t digipeated_packet_count=0;
 static float rssi;
 static float snr;
 static float freqError;
-LastRXObject lastRX;
+
+LastRXObject lastDigiRX;
 
 QueueHandle_t rxMessageQueueR;
 
@@ -68,16 +69,15 @@ void tasksendRXPacketsToRF(void * parameter){
           String sender = packet.substring(3,packet.indexOf(">"));
           if ((packet.indexOf("WIDE1-1") > 10) && (routerConfig.digi.callsign != sender)) {
             show_display_two_lines_big_header(sender,packet.substring(packet.indexOf(">")));
-            loraPacket = packet.substring(3);
-            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "tasksendRXPacketsToRF", "Received APRS message:");                
+            loraPacket = packet.substring(3);             
             Serial.println(loraPacket);              
             loraPacket.replace("WIDE1-1", routerConfig.digi.callsign + "*");
             routerTX(loraPacket);
             ++digipeated_packet_count;
-            lastRX.callsign = sender;
-            lastRX.millis = millis();
-            lastRX.rssi = rssi;
-            lastRX.snr = snr;     
+            lastDigiRX.callsign = sender;
+            lastDigiRX.millis = millis();
+            lastDigiRX.rssi = rssi;
+            lastDigiRX.snr = snr;     
           }
         } else {
           Serial.println(packet);
@@ -116,7 +116,7 @@ void tasksendRXPacketsToQueueR(void * parameter){
                       "Packet Size:"+String(payloadSize)+ " bytes",
                       "RSSI: " + String(rssi),
                       "SNR : " + String(snr),
-                      "Freq Err: " + String(freqError));       
+                      "Freq Err: " + String(freqError),0);       
 
           logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "tasksendRXPacketsToQueueR", "Received LoRa packet, payload size: %d", payloadSize);
           logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "tasksendRXPacketsToQueueR", "RSSI         : %f dBm", rssi);
@@ -155,16 +155,16 @@ void tasksendRouterLocationToRF(void * parameter){
   for(;;){
     esp_task_wdt_reset();
     int lastRXMinutes = 0;
-    if(lastRX.millis > 0){
-      lastRXMinutes = (int)(((millis() - lastRX.millis)/1000)/60);
+    if(lastDigiRX.millis > 0){
+      lastRXMinutes = (int)(((millis() - lastDigiRX.millis)/1000)/60);
     }
 
     show_display_six_lines_big_header(routerConfig.digi.callsign,
-                "Last Packet:",
-                lastRX.callsign,
-                "RSSI: " + String(lastRX.rssi),
-                "SNR : " + String(lastRX.snr),
-                "Time: " + String(lastRXMinutes) + " min ago");   
+                "Last RX:",
+                lastDigiRX.callsign,
+                "RSSI: " + String(lastDigiRX.rssi),
+                "SNR : " + String(lastDigiRX.snr),
+                "Time: " + String(lastRXMinutes) + " min ago",0);   
 
     //Sending Router location to RF    
     if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > ROUTER_LOCATION_BEACON_INTERVAL * 1000))
