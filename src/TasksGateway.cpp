@@ -14,6 +14,7 @@
 
 extern logging::Logger logger;
 extern ConfigurationGateway gatewayConfig;
+extern ConfigurationCommon commonConfig;
 
 #define IGATE_STATUS_BEACON_INTERVAL 900
 #define IGATE_LOCATION_BEACON_INTERVAL 1200
@@ -44,7 +45,7 @@ void setup_GatewayTasks() {
     delay(100);
     esp_task_wdt_add(Task_Send_RX_Packets_To_Queue_GW);
 
-    if (gatewayConfig.wifi.active && gatewayConfig.aprs_is.active)
+    if (gatewayConfig.wifi.active)
     {
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "setup_GatewayTasks", "Creating tasksendRXPacketsToAPRSIS...");
       xTaskCreate(tasksendRXPacketsToAPRSIS,"RxToAPRSIS",10000,NULL,1,&Task_Send_Packets_To_APRS_IS);
@@ -82,9 +83,9 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
   for(;;){
     esp_task_wdt_reset();
 
-    String aprisConn = "OK";
-    if(!aprs_is.connected()) {
-      aprisConn = "NOK";
+    String aprisConn = "NOK";
+    if(gatewayConfig.aprs_is.active && aprs_is.connected()) {
+      aprisConn = "OK";
     }
 
     String wifiConn = "OK";
@@ -92,10 +93,11 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
     if(WiFi.status() != WL_CONNECTED) {
       wifiConn = "NOK";
       aprisConn = "NOK";
-      if(gatewayConfig.digi.repeatAllPcktsNotConn){
-        digiOrIP = "Mode: Digipeater";
-      }
     }   
+
+    if((WiFi.status() != WL_CONNECTED || !gatewayConfig.aprs_is.active) && gatewayConfig.digi.repeatAllPcktsNotConn){
+        digiOrIP = "Mode: Digipeater";
+    }
 
     int lastRXMinutes = 0;
     if(lastiGateRX.millis > 0){
@@ -109,11 +111,20 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
                 "RSSI: " + String(lastiGateRX.rssi) + " SNR: " + String(lastiGateRX.snr),
                 "Time: " + String(lastRXMinutes) + " min ago",0);   
 
+  int secs_since_beacon = (int)(millis() - lastiGateRX.millis) / 1000;
+
+  if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
+    display_toggle(false);
+  } else {
+    display_toggle(true);
+  }
+
     //Sending iGate Status message to APRS-IS to check connection is stil alive.
     if (millis() - last_igate_status_packet_time > IGATE_STATUS_BEACON_INTERVAL * 1000) {
 
       //checkAPRS_ISConnection();
       if(hasLostConnection()){
+        display_toggle(true);
         show_display("\r\nStatus TX",0,2);
         String statusMessage = getiGateStatusAPRSMessage();
         routerTX(statusMessage);
@@ -136,6 +147,7 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
     {
       //checkAPRS_ISConnection();
       if(hasLostConnection()){
+        display_toggle(true);
         show_display("\r\n  Loc TX",0,2);
         String locMessage = getiGateLocationAPRSMessage();
         routerTX(locMessage);

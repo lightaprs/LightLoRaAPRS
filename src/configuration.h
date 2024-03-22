@@ -10,6 +10,14 @@ enum device_modes {
 
 class ConfigurationCommon {
 public:
+  class Display {
+  public:
+    Display() : always_on(true),  display_timeout(10), turn_180(false) {
+    }
+    bool always_on;
+    int display_timeout;
+    bool turn_180;
+  };  
   class LoRa {
   public:
     LoRa() : frequencyRX(433.775), frequencyTX(433.775), power(22), spreadingFactor(12), signalBandwidth(125), codingRate4(5), preambleLength(8), crc(true) {
@@ -32,6 +40,7 @@ public:
   bool              metricSystem;
   float             tempSensorCorrection;
   float             humiditySensorCorrection;
+  Display           display;  
   LoRa              lora;
 };
 

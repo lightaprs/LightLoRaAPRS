@@ -3,6 +3,7 @@
 
 void setup_Display();
 
+void display_clear();
 void display_toggle(bool toggle);
 void show_display_print(String line1, int wait = 0, int textSize = 1);
 void show_display_println(String line1, int wait = 0, int textSize = 1);

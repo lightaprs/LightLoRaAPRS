@@ -153,7 +153,7 @@ void displayGPSInfo() {
   if (trackerConfig.power.deepSleep) {
     mode += " Sleep";
   }
-
+  display_toggle(true);
   show_display_six_lines_big_header("Searching.",
               "GPS Sats: "+String(gps.satellites.value()),
               "GPS Date: " + String(gps.date.month())+"/"+String(gps.date.day())+"/"+String(gps.date.year()),

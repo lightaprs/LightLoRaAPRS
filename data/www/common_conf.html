@@ -38,7 +38,21 @@
                     <input type="text" id="humidity_sensor_correction" name="humidity_sensor_correction">
                 </div>                   
             </div>
-
+            <div class="section">
+                <h2>Display Configuration</h2>
+                <div class="form-group">
+                    <label for="always_on">Always On:</label>
+                    <input type="checkbox" id="always_on" name="always_on">
+                </div>
+                <div class="form-group">
+                    <label for="display_timeout">Display Timeout (secs):</label>
+                    <input type="number" id="display_timeout" name="display_timeout">
+                </div>
+                <div class="form-group">
+                    <label for="always_on">Turn 180:</label>
+                    <input type="checkbox" id="turn_180" name="turn_180">
+                </div>                
+            </div>    
             <div class="section">
                 <h2>LoRa Configuration</h2>
                 <div class="form-group">
@@ -95,6 +109,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('metric_system').checked = data.metric_system;
             document.getElementById('temperature_sensor_correction').value = data.temperature_sensor_correction;
             document.getElementById('humidity_sensor_correction').value = data.humidity_sensor_correction;
+
+            document.getElementById('always_on').checked = data.display.always_on;
+            document.getElementById('display_timeout').value = data.display.display_timeout;
+            document.getElementById('turn_180').checked = data.display.turn_180;
+
             document.getElementById('frequency_rx').value = data.lora.frequency_rx;
             document.getElementById('frequency_tx').value = data.lora.frequency_tx;
             document.getElementById('power').value = data.lora.power;
@@ -116,6 +135,11 @@ document.getElementById('updateForm').addEventListener('submit', function(event)
     metric_system: document.getElementById('metric_system').checked,
     temperature_sensor_correction: parseFloat(document.getElementById('temperature_sensor_correction').value),
     humidity_sensor_correction: parseFloat(document.getElementById('humidity_sensor_correction').value),
+    display: {
+        always_on: document.getElementById('always_on').checked,
+        display_timeout: parseInt(document.getElementById('display_timeout').value),
+        turn_180: document.getElementById('turn_180').checked
+    },
     lora: {
         frequency_rx: parseFloat(document.getElementById('frequency_rx').value),
         frequency_tx: parseFloat(document.getElementById('frequency_tx').value),

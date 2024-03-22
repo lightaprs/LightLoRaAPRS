@@ -40,6 +40,10 @@ ConfigurationCommon ConfigurationManagement::readCommonConfiguration() {
     conf.tempSensorCorrection     = data["temperature_sensor_correction"] | -5.0;
     conf.humiditySensorCorrection = data["humidity_sensor_correction"] | 20;
 
+    conf.display.always_on          = data["display"]["always_on"] | true;
+    conf.display.display_timeout    = data["display"]["display_timeout"] | 5;
+    conf.display.turn_180           = data["display"]["turn_180"] | false;
+
     conf.lora.frequencyRX     = data["lora"]["frequency_rx"] | 433.775;
     conf.lora.frequencyTX     = data["lora"]["frequency_tx"] | 433.775;
     conf.lora.power           = data["lora"]["power"] | 22;
@@ -67,14 +71,18 @@ void ConfigurationManagement::writeCommonConfiguration(ConfigurationCommon conf)
     data["temperature_sensor_correction"] = conf.tempSensorCorrection;
     data["humidity_sensor_correction"]    = conf.humiditySensorCorrection;
 
-    data["lora"]["frequency_rx"]     = conf.lora.frequencyRX;
-    data["lora"]["frequency_tx"]     = conf.lora.frequencyTX;
-    data["lora"]["power"]            = conf.lora.power;
-    data["lora"]["spreading_factor"] = conf.lora.spreadingFactor;
-    data["lora"]["signal_bandwidth"] = conf.lora.signalBandwidth;
-    data["lora"]["preamble_length"]  = conf.lora.preambleLength;
-    data["lora"]["coding_rate4"]     = conf.lora.codingRate4;
-    data["lora"]["crc"]              = conf.lora.crc;
+    data["display"]["always_on"]          = conf.display.always_on;
+    data["display"]["display_timeout"]    = conf.display.display_timeout;
+    data["display"]["turn_180"]           = conf.display.turn_180;
+
+    data["lora"]["frequency_rx"]          = conf.lora.frequencyRX;
+    data["lora"]["frequency_tx"]          = conf.lora.frequencyTX;
+    data["lora"]["power"]                 = conf.lora.power;
+    data["lora"]["spreading_factor"]      = conf.lora.spreadingFactor;
+    data["lora"]["signal_bandwidth"]      = conf.lora.signalBandwidth;
+    data["lora"]["preamble_length"]       = conf.lora.preambleLength;
+    data["lora"]["coding_rate4"]          = conf.lora.codingRate4;
+    data["lora"]["crc"]                   = conf.lora.crc;
 
   serializeJson(data, file);
   file.close();

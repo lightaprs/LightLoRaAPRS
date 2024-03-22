@@ -22,7 +22,7 @@
 #include "webserver.h"
 #include "button.h"
 
-#define VERSION "1.0.3"
+#define VERSION "1.0.4"
 
 logging::Logger logger;
 TinyGPSPlus gps;
@@ -220,6 +220,7 @@ void setup_WiFi(){
 
     WiFi.begin(gatewayConfig.wifi.ssid, gatewayConfig.wifi.password);
     Serial.print("Waiting for WiFi: ");
+    show_display_print("Wi-Fi connecting");
     Serial.print(gatewayConfig.wifi.ssid);
 
     unsigned long wifiFirstAttempt = millis();
@@ -227,12 +228,14 @@ void setup_WiFi(){
     while(WiFi.status() != WL_CONNECTED && !connTimeOut)
     {
       Serial.print(".");
+      show_display_print(".");
       delay(500);
       connTimeOut = (millis() - wifiFirstAttempt) > 10000;
     }
 
     if(!connTimeOut) {
-      show_display_println("\r\nWi-Fi connected..");
+      show_display_println("\r\nWi-Fi connected.");
+      delay(1000);
       Serial.println("connected.");
       Serial.print("Local IP: ");
       Serial.print(WiFi.localIP());

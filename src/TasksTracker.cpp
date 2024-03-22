@@ -89,6 +89,7 @@ void tasksendRegularBeaconTX(void * parameter){
 
     if (ready_to_tx_time_interval && ready_to_tx_location)
     {
+        display_toggle(true);
         show_display("\r\n  Loc TX",0,2);
         sync_system_time_with_GPS();
         ledBlink(true);
@@ -122,6 +123,7 @@ void tasksendSmartBeaconTX(void * parameter){
         bool ready_to_tx_smart_beacon = smartBeaconDecision();
         
         if(ready_to_tx_smart_beacon) {
+            display_toggle(true);
             show_display("\r\n  Loc TX",0,2);
             sync_system_time_with_GPS();
             ledBlink(true);
@@ -131,6 +133,7 @@ void tasksendSmartBeaconTX(void * parameter){
         }
 
     } else if (!gps.location.isValid() && !(gps.satellites.value() > MIN_GPS_SATS)) {
+        display_toggle(true);
         gpsSearchLedBlink();
         printGPSData();
         printTempHumidityData();

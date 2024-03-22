@@ -16,73 +16,132 @@ uint8_t iGateRegion;
 
 void setup_APRS_IS(){
 
-  show_display_print("\r\nAPRS-IS conn...");
-  aprs_is.setup(gatewayConfig.igate.callsign, gatewayConfig.aprs_is.passcode, "ESP32-APRS-IS", "0.2");
+  display_clear();
+  show_display_println("APRS-IS",0,2);
+  show_display_print("Callsign: ");show_display_println(gatewayConfig.igate.callsign);
+  show_display_print("Passcode: ");show_display_println(gatewayConfig.aprs_is.passcode);
 
-  aprs_is_server = gatewayConfig.aprs_is.server;
+  if(atoi(gatewayConfig.aprs_is.passcode.c_str()) == aprspass(gatewayConfig.igate.callsign.c_str())){
+    aprs_is.setup(gatewayConfig.igate.callsign, gatewayConfig.aprs_is.passcode, "ESP32-APRS-IS", "0.2");
 
-  if(gatewayConfig.aprs_is.autoServer) {
+    aprs_is_server = gatewayConfig.aprs_is.server;
 
-    double iGateLat = gatewayConfig.igate.latitude;
-    double iGateLong = gatewayConfig.igate.longitude;
+    if(gatewayConfig.aprs_is.autoServer) {
 
-    if(gatewayConfig.igate.useGPS && gps.location.isValid() && gps.satellites.value() > 3){
-      iGateLat = gps.location.lat();
-      iGateLong = gps.location.lng();
+      double iGateLat = gatewayConfig.igate.latitude;
+      double iGateLong = gatewayConfig.igate.longitude;
+
+      if(gatewayConfig.igate.useGPS && gps.location.isValid() && gps.satellites.value() > 3){
+        iGateLat = gps.location.lat();
+        iGateLong = gps.location.lng();
+      }
+
+      iGateRegion = getRegionByLocation(iGateLat,iGateLong);
+
+      switch (iGateRegion)
+      {
+      case no_region:
+        aprs_is_server = gatewayConfig.aprs_is.server;
+        break;
+      case north_america:
+        aprs_is_server = "noam.aprs2.net";
+        break;    
+      case south_america:
+        aprs_is_server = "soam.aprs2.net";
+        break;
+      case europe:
+        aprs_is_server = "euro.aprs2.net";
+        break;      
+      case asia:
+        aprs_is_server = "asia.aprs2.net";
+        break;
+      case oceania:
+        aprs_is_server = "aunz.aprs2.net";
+        break;       
+      default:
+        break;
+      }
+
     }
 
-    iGateRegion = getRegionByLocation(iGateLat,iGateLong);
+    show_display_print("Server:");show_display_println(aprs_is_server);
+    Serial.print("Connecting to APRS-IS server: ");
+    Serial.print(aprs_is_server);
+    Serial.print(" on port: ");
+    Serial.println(gatewayConfig.aprs_is.port);
 
-    switch (iGateRegion)
+    show_display_print("Connecting...");
+    aprs_is.connect(aprs_is_server, gatewayConfig.aprs_is.port, gatewayConfig.aprs_is.filter);
+    
+    delay(3000);
+    if (aprs_is.connected())
     {
-    case no_region:
-      aprs_is_server = gatewayConfig.aprs_is.server;
-      break;
-    case north_america:
-      aprs_is_server = "noam.aprs2.net";
-      break;    
-    case south_america:
-      aprs_is_server = "soam.aprs2.net";
-      break;
-    case europe:
-      aprs_is_server = "euro.aprs2.net";
-      break;      
-    case asia:
-      aprs_is_server = "asia.aprs2.net";
-      break;
-    case oceania:
-      aprs_is_server = "aunz.aprs2.net";
-      break;       
-    default:
-      break;
+      //aprs_is.available() > 0
+      String msg_ = "";
+      while(!msg_.startsWith("#"))
+      {      
+        msg_ = aprs_is.getMessage();
+        delay(10);
+      }
+      Serial.println(msg_);
+      show_display_println("done");
+      show_display_println(msg_);       
+      delay(2000);
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Connected to server!");
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "APRS_IS setup completed...");
+    } else {
+      show_display_println("ERROR");
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "Connection failed.");
     }
 
-  }
-  Serial.print("Connecting to APRS-IS server: ");
-  Serial.print(aprs_is_server);
-  Serial.print(" on port: ");
-  Serial.println(gatewayConfig.aprs_is.port);
-
-  aprs_is.connect(aprs_is_server, gatewayConfig.aprs_is.port, gatewayConfig.aprs_is.filter);
-  delay(3000);
-  if (aprs_is.connected())
-  {
-    //aprs_is.available() > 0
-    String msg_ = "";
-    while(!msg_.startsWith("#"))
-    {      
-      msg_ = aprs_is.getMessage();
-      delay(10);      
-    }
-    Serial.println(msg_);      
-    show_display_println("done.");
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Connected to server!");
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "APRS_IS setup completed...");
   } else {
-    show_display_println("ERROR");
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "Connection failed.");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "INVALID PASSCODE.....");
+    show_display_println("");
+    show_display_println(" INVALID PASSCODE!!!");
+    
+    while(true) {
+      delay(100);
+    }
+    
+
   }
 
+
+
+}
+
+unsigned int aprspass(const char *callsign) {
+    char realcall[11];
+    unsigned int hash = 0x73e2;
+    int i = 0, len;
+
+    // Find '-' and truncate callsign if necessary
+    const char *stophere = strchr(callsign, '-');
+    if (stophere != NULL) {
+        len = stophere - callsign;
+        if (len > 10)
+            len = 10;
+        strncpy(realcall, callsign, len);
+    } else {
+        strncpy(realcall, callsign, 10);
+        len = strlen(callsign);
+    }
+    realcall[len] = '\0';
+
+    // Convert to uppercase
+    for (i = 0; i < len; i++) {
+        realcall[i] = toupper(realcall[i]);
+    }
+
+    // Hash callsign two bytes at a time
+    for (i = 0; i < len; i += 2) {
+        hash ^= realcall[i] << 8;
+        if (realcall[i + 1] != '\0')
+            hash ^= realcall[i + 1];
+    }
+
+    // Mask off the high bit so number is always positive
+    return hash & 0x7fff;
 }
 
 void sendDataToAPRSIS(String message) {
@@ -134,6 +193,7 @@ void checkAPRS_ISConnection(){
       }
 
       if(!connTimeOut) {
+        display_toggle(true);
         show_display_println("\r\nWi-Fi reconnected..");
         Serial.println("connected.");
         Serial.print("Local IP: ");
@@ -143,6 +203,7 @@ void checkAPRS_ISConnection(){
         Serial.println("dBm");
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Wi-Fi", "Wi-Fi reconnected...");
       } else {
+        display_toggle(true);
         show_display_println("\r\nWi-Fi ERROR");
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Wi-Fi", "Wi-Fi Connection failed, check SSID or password...");      
       }      

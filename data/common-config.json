@@ -4,6 +4,11 @@
 	"metric_system": true,
 	"temperature_sensor_correction": -5.0,
 	"humidity_sensor_correction": 20,
+	"display": {
+        "always_on": true,
+        "display_timeout": 5,		
+		"turn_180": false
+    },	
 	"lora": {
 		"frequency_rx": 433.775,
 		"frequency_tx": 433.775,
@@ -13,5 +18,5 @@
 		"coding_rate4": 5,
 		"preamble_length": 8,
 		"crc": true
-	}	
+	}
 }

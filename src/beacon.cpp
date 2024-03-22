@@ -32,7 +32,7 @@ ICACHE_RAM_ATTR void setRXFlag(void) {
 //https://www.w8wjb.com/qth/QTHHelp/English.lproj/adv-smartbeaconing.html
 bool smartBeaconDecision() {
 
-  long secs_since_beacon = (millis() - lastTX.millis) / 1000;
+  int secs_since_beacon = (int)(millis() - lastTX.millis) / 1000;
 
   int beacon_rate;
   int speed = gps.speed.isValid() ? (int)gps.speed.kmph() : 0;
@@ -69,7 +69,13 @@ bool smartBeaconDecision() {
               "Locator: " + String(newGrid6),
               String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
               "Beacon Rate: "+ String(beacon_rate)+" secs", 
-              "Last TX "+String((int)secs_since_beacon)+" secs ago");
+              "Last TX "+String((int)secs_since_beacon)+" secs ago",0);
+
+  if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
+    display_toggle(false);
+  } else {
+    display_toggle(true);
+  }
 
   if (secs_since_beacon > beacon_rate) {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "SmartBeacon", "Requesting transmit, secs since last beacon: %d", secs_since_beacon);
@@ -592,13 +598,20 @@ void displayRegularBeaconInfo() {
 
   char newGrid6[9];
   calcLocator(newGrid6,gps.location.lat(),gps.location.lng(),8);
-  int nextTX = trackerConfig.beacon.interval - (int)((millis() - lastTX.millis)/1000);
+  int secs_since_beacon = (int) (millis() - lastTX.millis) / 1000;
+  int nextTX = trackerConfig.beacon.interval - secs_since_beacon;
 
   show_display_six_lines_big_header(trackerConfig.beacon.callsign,
               "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
               "Locator: " + String(newGrid6),
               String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
               "GPS Sats: "+String(gps.satellites.value()), 
-              "Next TX: "+String(nextTX)+" secs");
+              "Next TX: "+String(nextTX)+" secs",0);
+
+  if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
+    display_toggle(false);
+  } else {
+    display_toggle(true);
+  }              
 
 }

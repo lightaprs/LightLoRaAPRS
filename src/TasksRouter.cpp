@@ -13,6 +13,7 @@
 
 extern logging::Logger logger;
 extern ConfigurationRouter routerConfig;
+extern ConfigurationCommon commonConfig;
 
 #define ROUTER_STATUS_BEACON_INTERVAL 900
 #define ROUTER_LOCATION_BEACON_INTERVAL 1200
@@ -46,7 +47,6 @@ void setup_RouterTasks() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "setup_RouterTasks", "Creating tasksendRXPacketsToRF...");
     xTaskCreate(tasksendRXPacketsToRF,"RxToRF",10000,NULL,1,&Task_Send_Packets_To_RF);
     delay(100);
-
     
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "setup_RouterTasks", "Creating tasksendRouterLocationToRF...");
     xTaskCreate(tasksendRouterLocationToRF,"RouterLocToRF",10000,NULL,1,&Task_Router_Location_To_RF);       
@@ -160,15 +160,24 @@ void tasksendRouterLocationToRF(void * parameter){
     }
 
     show_display_six_lines_big_header(routerConfig.digi.callsign,
-                "Last RX:",
-                lastDigiRX.callsign,
+                String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
+                "Last RX: " + lastDigiRX.callsign,
                 "RSSI: " + String(lastDigiRX.rssi),
                 "SNR : " + String(lastDigiRX.snr),
                 "Time: " + String(lastRXMinutes) + " min ago",0);   
 
+  int secs_since_beacon = (int)(millis() - lastDigiRX.millis) / 1000;
+
+  if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
+    display_toggle(false);
+  } else {
+    display_toggle(true);
+  }
+
     //Sending Router location to RF    
     if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > ROUTER_LOCATION_BEACON_INTERVAL * 1000))
     {
+      display_toggle(true);
       show_display("\r\n  Loc TX",0,2);
       String locMessage = getRouterLocationAPRSMessage();
       routerTX(locMessage);
@@ -177,6 +186,7 @@ void tasksendRouterLocationToRF(void * parameter){
 
     //Sending Router status message to RF 
     if (millis() - last_router_status_packet_time > ROUTER_STATUS_BEACON_INTERVAL * 1000) {
+      display_toggle(true);
       show_display("\r\nStatus TX",0,2);
       String statusMessage = getRouterStatusAPRSMessage();
       routerTX(statusMessage);

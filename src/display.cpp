@@ -4,8 +4,10 @@
 #include "display.h"
 #include "variant.h"
 #include "logger.h"
+#include "configuration.h"
 
 extern logging::Logger logger;
+extern ConfigurationCommon commonConfig;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST_PIN);
 
@@ -18,6 +20,9 @@ void setup_Display() {
     display.setTextColor(WHITE);
     display.setTextSize(1);
     display.setCursor(0, 0);
+    if(commonConfig.display.turn_180) {
+      display.setRotation(2);
+    }    
     display.print("Setup Display...");  
     display.ssd1306_command(SSD1306_SETCONTRAST);
     display.ssd1306_command(1);
@@ -28,6 +33,13 @@ void setup_Display() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Display", "SSD1306 allocation failed");
   }
     
+}
+
+void display_clear(){
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);  
 }
 
 void display_toggle(bool toggle) {

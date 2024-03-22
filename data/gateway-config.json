@@ -4,13 +4,13 @@
         "aprs_comment": "LightTracker Plus LoRa APRS iGate by TA2MUN & TA3YNS",
         "use_gps_if_possible": true,
         "gps_timeout": 60,          
-        "latitude": 0,
-        "longitude": 0,
+        "latitude": 0.0,
+        "longitude": 0.0,
         "weather_station": false
     },
     "digi": {
-	"repeat_aprs_messages_only": true,
-        "repeat_all_packets_if_aprsis_not_connected": true		   
+		"repeat_aprs_messages_only": true,
+    	"repeat_all_packets_if_aprsis_not_connected": true		   
     },
     "aprs_is": {
         "active": true,
