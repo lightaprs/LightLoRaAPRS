@@ -108,7 +108,7 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
                 "WiFi: "+ wifiConn + " APRSIS: "+ aprisConn,
                 digiOrIP,
                 "Last RX: " + lastiGateRX.callsign,
-                "RSSI: " + String(lastiGateRX.rssi) + " SNR: " + String(lastiGateRX.snr),
+                "RSSI:" + String((int)lastiGateRX.rssi) + " SNR:" + String((int)lastiGateRX.snr),
                 "Time: " + String(lastRXMinutes) + " min ago",0);   
 
   int secs_since_beacon = (int)(millis() - lastiGateRX.millis) / 1000;
@@ -121,8 +121,6 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
 
     //Sending iGate Status message to APRS-IS to check connection is stil alive.
     if (millis() - last_igate_status_packet_time > IGATE_STATUS_BEACON_INTERVAL * 1000) {
-
-      //checkAPRS_ISConnection();
       if(hasLostConnection()){
         display_toggle(true);
         show_display("\r\nStatus TX",0,2);
@@ -145,7 +143,6 @@ void tasksendiGateLocationToAPRSIS(void * parameter){
     //Sending iGate location to APRS-IS    
     if (millis() - last_igate_loc_packet_time > IGATE_LOCATION_BEACON_INTERVAL * 1000)
     {
-      //checkAPRS_ISConnection();
       if(hasLostConnection()){
         display_toggle(true);
         show_display("\r\n  Loc TX",0,2);

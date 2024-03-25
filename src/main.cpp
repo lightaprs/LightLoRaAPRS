@@ -22,7 +22,7 @@
 #include "webserver.h"
 #include "button.h"
 
-#define VERSION "1.0.4"
+#define VERSION "1.0.5"
 
 logging::Logger logger;
 TinyGPSPlus gps;

@@ -56,7 +56,7 @@ bool smartBeaconDecision() {
     }
   }
   
-  //if battery is low, force to increase beacon rate.
+  //if battery is low, force to slow rate.
   if(trackerConfig.smartBeacon.checkBatteryVoltage == true && readBatteryVoltage() < 3.5f){
     beacon_rate = trackerConfig.smartBeacon.slowRate;
   }
@@ -112,7 +112,7 @@ int getSmartBeaconDeepSleepRate(double lastTxLat, double lastTxLng, unsigned lon
     }
   }
   
-  //if battery is low, force to increase beacon rate.
+  //if battery is low, force to slow rate.
   if(trackerConfig.smartBeacon.checkBatteryVoltage == true && readBatteryVoltage() < 3.8f){
     beacon_rate = trackerConfig.smartBeacon.slowRate;
   }

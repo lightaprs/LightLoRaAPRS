@@ -76,19 +76,28 @@ void setup_APRS_IS(){
     delay(3000);
     if (aprs_is.connected())
     {
-      //aprs_is.available() > 0
+      unsigned long aprsisFirstAttempt = millis();
+      bool connTimeOut = false;
       String msg_ = "";
-      while(!msg_.startsWith("#"))
+      while(!msg_.startsWith("#") && !connTimeOut)
       {      
         msg_ = aprs_is.getMessage();
         delay(10);
+        connTimeOut = (millis() - aprsisFirstAttempt) > 60000;
       }
-      Serial.println(msg_);
-      show_display_println("done");
-      show_display_println(msg_);       
-      delay(2000);
-      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Connected to server!");
-      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "APRS_IS setup completed...");
+      if(!connTimeOut) {
+        show_display_println("done");
+        show_display_println(msg_);
+        Serial.println(msg_);
+        delay(2000);
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "Connected to server!");
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "APRS_IS", "APRS_IS setup completed...");
+      } else {
+        show_display_println("ERROR(timeout)");
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "Connection (timeout) failed.");          
+      }
+      
+
     } else {
       show_display_println("ERROR");
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "APRS_IS", "Connection failed.");
