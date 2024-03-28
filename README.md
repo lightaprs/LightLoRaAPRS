@@ -13,6 +13,7 @@ Also I am not planing to improve or add new features to this software, maybe add
 
 ## WiKi
 
+* [F.A.Q.](https://github.com/lightaprs/LightLoRaAPRS/wiki/F.A.Q.)
 * [Setup (Configuration) Mode](https://github.com/lightaprs/LightLoRaAPRS/wiki/Setup-(Configuration)-Mode)
 * [Common Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/Common-Configuration)
 * [Tracker Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/Tracker-Configuration)
