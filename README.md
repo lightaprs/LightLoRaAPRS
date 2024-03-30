@@ -14,10 +14,18 @@ Additionally, I am not planning to improve or add new features to this software,
 ## WiKi
 
 * [F.A.Q.](https://github.com/lightaprs/LightLoRaAPRS/wiki/F.A.Q.)
+* [High Altitude Balloon (HAB) Tracker Mode](https://github.com/lightaprs/LightLoRaAPRS/wiki/High-Altitude-Balloon-(HAB)-Tracker-Mode)
+
+### Configuration Guides
+
 * [Setup (Configuration) Mode](https://github.com/lightaprs/LightLoRaAPRS/wiki/Setup-(Configuration)-Mode)
 * [Common Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/Common-Configuration)
 * [Tracker Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/Tracker-Configuration)
-* [High Altitude Balloon (HAB) Tracker Mode](https://github.com/lightaprs/LightLoRaAPRS/wiki/High-Altitude-Balloon-(HAB)-Tracker-Mode)
+* [iGate Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/iGate-Configuration)
+* [Digipeater Configuration](https://github.com/lightaprs/LightLoRaAPRS/wiki/Digipeater-Configuration)
+
+### Firmware Update Guides
+
 * [Web (OTA) Firmware Update](https://github.com/lightaprs/LightLoRaAPRS/wiki/Web-(OTA)-Firmware-Update)
 * [Putting the Device into Programming Mode](https://github.com/lightaprs/LightLoRaAPRS/wiki/Putting-the-Device-into-Programming-Mode)
 * [ESPTool (USB) Firmware Update Guide](https://github.com/lightaprs/LightLoRaAPRS/wiki/ESPTool-Firmware-Update-Guide)
