@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messaging Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">Messaging Configuration</h1>
+        <form id="updateForm">
+            <div class="section">
+                <h2>Messaging Configuration</h2>
+                <div class="form-group">
+                    <label for="active">Messaging Enabled:</label>
+                    <input type="checkbox" id="active" name="active">
+                </div>                
+                <div class="form-group">
+                    <label for="path">Path:</label>
+                    <input type="text" id="path" name="path">
+                </div>
+                <div class="form-group">
+                    <label for="default_group">Default Group:</label>
+                    <input type="text" id="default_group" name="default_group">
+                </div>
+                <div class="form-group">
+                    <label for="store_messages">Store Messages:</label>
+                    <input type="checkbox" id="store_messages" name="store_messages">
+                </div>                
+                <div class="form-group">
+                    <label for="direct_rx_messages_max_store_count">Direct RX Messages Max Store Count:</label>
+                    <input type="number" id="direct_rx_messages_max_store_count" name="direct_rx_messages_max_store_count">
+                </div>
+                <div class="form-group">
+                    <label for="group_rx_messages_max_store_count">Group RX Messages Max Store Count:</label>
+                    <input type="number" id="group_rx_messages_max_store_count" name="group_rx_messages_max_store_count">
+                </div>                                   
+                <div class="form-group">
+                    <label for="bln_rx_messages_max_store_count">Bulletin Messages Max Store Count:</label>
+                    <input type="number" id="bln_rx_messages_max_store_count" name="bln_rx_messages_max_store_count">
+                </div>
+                <div class="section">
+                    <h2>WiFi AP (Access Point) Configuration</h2>
+                    <div class="form-group">
+                        <label for="auto_enable_disable">Auto Enable/Disable:</label>
+                        <input type="checkbox" id="auto_enable_disable" name="auto_enable_disable">
+                    </div>                
+                    <div class="form-group">
+                        <label for="ssid">SSID Prefix:</label>
+                        <input type="text" id="ssid" name="ssid">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="text" id="password" name="password">
+                    </div>
+                </div>
+
+            </div>
+            <button type="submit">Update Messaging Configuration</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div><h3><a href="messaging_conf_json_fetch">JSON File</a></h3></div>
+        <div><h3><a href="/">Home</a></h3></div>                
+    </div>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Fetch the JSON data from the server
+    fetch('/messaging_conf_json_fetch') // Replace with the actual URL
+        .then(response => response.json())
+        .then(data => {
+            // Populate the form fields with data
+            document.getElementById('active').checked = data.active;
+            document.getElementById('path').value = data.path;
+            document.getElementById('default_group').value = data.default_group;
+            document.getElementById('store_messages').checked = data.store_messages;
+            document.getElementById('direct_rx_messages_max_store_count').value = data.direct_rx_messages_max_store_count;
+            document.getElementById('group_rx_messages_max_store_count').value = data.group_rx_messages_max_store_count;
+            document.getElementById('bln_rx_messages_max_store_count').value = data.bln_rx_messages_max_store_count;
+            document.getElementById('auto_enable_disable').checked = data.wifi_ap.auto_enable_disable;
+            document.getElementById('ssid').value = data.wifi_ap.ssid;
+            document.getElementById('password').value = data.wifi_ap.password;
+
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+
+document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Collect the form data and construct the updated JSON
+    const updatedData = {
+
+        active: document.getElementById('active').checked,
+        path: document.getElementById('path').value,
+        default_group: document.getElementById('default_group').value,
+        store_messages: document.getElementById('store_messages').checked,
+        direct_rx_messages_max_store_count: document.getElementById('direct_rx_messages_max_store_count').value,
+        group_rx_messages_max_store_count: document.getElementById('group_rx_messages_max_store_count').value,
+        bln_rx_messages_max_store_count: document.getElementById('bln_rx_messages_max_store_count').value,
+
+        wifi_ap: {
+                active: document.getElementById('auto_enable_disable').checked,
+                ssid: document.getElementById('ssid').value,
+                password: document.getElementById('password').value,
+            }
+
+};
+
+    // Send the updated JSON data to the server
+    const url = '/post_messaging_conf_json_update';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the result in the 'result' div
+        const resultDiv = document.getElementById('result');
+        //resultDiv.textContent = JSON.stringify(data);
+        resultDiv.textContent = data.result;
+    })
+    .catch(error => {
+        const errorDiv = document.getElementById('error');
+        //errorDiv.textContent = 'Error: ' + error;
+        errorDiv.textContent = 'Error: ' + data.error;
+        console.error('Error:', error);
+    });
+});
+    </script>
+</body>
+
+
+</html>

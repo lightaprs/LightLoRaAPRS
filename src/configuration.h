@@ -8,8 +8,23 @@ enum device_modes {
   mode_digi = 3,
 };
 
+enum device_models {
+  device_lighttracker_plus_1_0 = 0,
+  device_lightgateway_plus_1_0 = 1,
+  device_lightgateway_1_0 = 2,  
+};
+
 class ConfigurationCommon {
 public:
+  class Solar {
+  public:
+    Solar() : disable_charging_below_temp(-4), disable_digipeating_above_temp(50.0), disable_digipeating_below_volt(3.3),increase_status_loc_tx_interval_below_volt(3.0) {
+    }
+    float disable_charging_below_temp;
+    float disable_digipeating_above_temp;
+    float disable_digipeating_below_volt;
+    float increase_status_loc_tx_interval_below_volt;
+  };  
   class Display {
   public:
     Display() : always_on(true),  display_timeout(10), turn_180(false) {
@@ -22,7 +37,6 @@ public:
   public:
     LoRa() : frequencyRX(433.775), frequencyTX(433.775), power(22), spreadingFactor(12), signalBandwidth(125), codingRate4(5), preambleLength(8), crc(true) {
     }
-
     float frequencyRX;
     float frequencyTX;
     int  power;
@@ -33,13 +47,16 @@ public:
     bool crc;
 
   };
-  ConfigurationCommon() : debug(false), deviceMode(1), metricSystem(1), tempSensorCorrection(-5.0), humiditySensorCorrection(20){
+  ConfigurationCommon() : debug(false), deviceMode(mode_tracker), deviceModel(device_lighttracker_plus_1_0), metricSystem(1), tempSensorCorrection(-5.0), humiditySensorCorrection(20){
   }
+  String            version;
   bool              debug;
   int               deviceMode;
+  int               deviceModel;
   bool              metricSystem;
   float             tempSensorCorrection;
   float             humiditySensorCorrection;
+  Solar             solar;
   Display           display;  
   LoRa              lora;
 };
@@ -48,7 +65,7 @@ class ConfigurationTracker {
 public:
   class Beacon {
   public:
-    Beacon() : callsign("NOCALL"), symbolCode("["), symbolTable("/"), path("WIDE1-1"), interval(30), gpsMode(0), aprsComment(""), statusMessage(""){
+    Beacon() : callsign("NOCALL-9"), symbolCode("["), symbolTable("/"), path("WIDE1-1"), interval(30), gpsMode(0), aprsComment(""), statusMessage(""){
     } 
     String callsign;
     String symbolCode;
@@ -101,7 +118,7 @@ class ConfigurationGateway {
 public:
   class IGate {
   public:
-    IGate() : callsign("NOCALL"), aprsComment("LoRa APRS iGate"), useGPS(true), latitude(0.0), longitude(0.0) {
+    IGate() : callsign("NOCALL-10"), aprsComment("LoRa APRS iGate"), useGPS(true), latitude(0.0), longitude(0.0) {
     } 
     String  callsign;
     String aprsComment;
@@ -183,7 +200,7 @@ class ConfigurationRouter {
 public:
   class Digi {
   public:
-    Digi() : callsign("NOCALL"), aprsComment("LoRa APRS iGate"), useGPS(true), latitude(0.0), longitude(0.0) {
+    Digi() : callsign("NOCALL-1"), aprsComment("LoRa APRS iGate"), useGPS(true), latitude(0.0), longitude(0.0) {
     } 
     String  callsign;
     String aprsComment;
@@ -194,11 +211,35 @@ public:
     boolean sendDigiLoc;
   };
 
-  
   ConfigurationRouter() {
   }
   Digi  digi;
 };
+
+class ConfigurationMessaging {
+public:
+   class WifiAP {
+  public:
+    WifiAP() : autoEnableDisable(true) {
+    }
+    bool autoEnableDisable;
+    String ssid;
+    String password;    
+  };
+
+  ConfigurationMessaging() : active(true), defaultGroup("CQ"),storeMessages(true){
+  }
+  bool         active;
+  String       path;  
+  String       defaultGroup;
+  bool         storeMessages;
+  int          directRXmaxCount;
+  int          groupRXmaxCount;
+  int          blnRXmaxCount;
+  WifiAP       wifi_ap;  
+};
+
+//ConfigurationMessaging
 
 class ConfigurationManagement {
 public:
@@ -212,7 +253,8 @@ public:
   void          writeGatewayConfiguration(ConfigurationGateway conf);
   ConfigurationRouter readRouterConfiguration();
   void          writeRouterConfiguration(ConfigurationRouter conf);
-
+  ConfigurationMessaging readMessagingConfiguration();
+  void          writeMessagingConfiguration(ConfigurationMessaging conf);
 
 private:
   const String mFilePath;

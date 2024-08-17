@@ -8,7 +8,6 @@
 #include "aprsis.h"
 #include "gps.h"
 #include "util.h"
-#include "SHTC3Sensor.h"
 
 #include "display.h"
 
@@ -200,16 +199,28 @@ void tasksendRXPacketsToAPRSIS(void * parameter){
             sendDataToAPRSIS(packet.substring(3));             
           } 
           
-          //Checking data type is message, these packets are also digipeated...
+          //Checking data type is message or message capable, these packets are also digipeated...
           bool containsMessagingIdentifier = dataTypeIdentifier.indexOf("=") == 0 || dataTypeIdentifier.indexOf("@") == 0 || dataTypeIdentifier.indexOf(":") ==0;
           //Checking APRS-IS connection lost, all packets are digipeated regardless data type...
           if ((hasLostConnection()) || (gatewayConfig.digi.repeatMssgOnly && containsMessagingIdentifier) || packet.indexOf("RFONLY") > -1){
 
-            if ((packet.indexOf("WIDE1-1") > 10) && (gatewayConfig.igate.callsign != sender)) {
+          int16_t indexWIDE1_1= packet.indexOf("WIDE1-1");
+          int16_t indexDigiInPath= packet.indexOf(gatewayConfig.igate.callsign);
+          int16_t indexGreaterSymbol= packet.indexOf(">");
+          int16_t indexColonSymbol= packet.indexOf(":");
+
+          bool wide1_1 = indexWIDE1_1 > indexGreaterSymbol && indexWIDE1_1 < indexColonSymbol;
+          bool digiInPath = indexDigiInPath > indexGreaterSymbol && indexDigiInPath < indexColonSymbol;
+
+            if ((wide1_1 || digiInPath) && (gatewayConfig.igate.callsign != sender)) {
               show_display_two_lines_big_header(sender,packet.substring(packet.indexOf(">")));
               loraPacket = packet.substring(3);              
-              Serial.println(loraPacket);          
-              loraPacket.replace("WIDE1-1", gatewayConfig.igate.callsign + "*");
+              Serial.println(loraPacket);
+              if (digiInPath) {
+                loraPacket.replace(gatewayConfig.igate.callsign, gatewayConfig.igate.callsign + "*");
+              } else {
+                loraPacket.replace("WIDE1-1", gatewayConfig.igate.callsign + "*");
+              }                      
               routerTX(loraPacket); 
             }
 

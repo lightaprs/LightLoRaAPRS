@@ -45,8 +45,8 @@ void setupLoRa()
 {
     show_display_print("LoRa setup...");
     pinMode(LORA_VCC_PIN,OUTPUT);  
-    pinMode(LORA_TX_PIN,OUTPUT);
-    pinMode(LORA_RX_PIN,OUTPUT);
+    //pinMode(LORA_TX_PIN,OUTPUT);
+    //pinMode(LORA_RX_PIN,OUTPUT);
 
     digitalWrite(LORA_VCC_PIN,HIGH);
     delay(500);
@@ -139,13 +139,16 @@ void configLoRaRadio(float freq, float bandWidth, uint8_t spreadingFactor, uint8
     while (true);
   }
 
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "LoRa setup done!");
+  radio.setRfSwitchPins(LORA_RX_PIN,LORA_TX_PIN);
+  radio.setRxBoostedGainMode(true);
+
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "LoRa setup done!");
     
 }
 
 void setupRX() {
 
-  digitalWrite(LORA_RX_PIN,HIGH);
+  //digitalWrite(LORA_RX_PIN,HIGH);
   // start listening for LoRa packets
   logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Starting to listen LoRa packets...");      
   int state = getSX126XRadio().startReceive();

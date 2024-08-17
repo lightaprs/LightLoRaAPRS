@@ -7,6 +7,7 @@ extern ConfigurationCommon commonConfig;
 extern ConfigurationTracker trackerConfig;
 extern ConfigurationGateway gatewayConfig;
 extern ConfigurationRouter routerConfig;
+extern ConfigurationMessaging messagingConfig;
 
 void load_config();
 bool isInvalidConfig();

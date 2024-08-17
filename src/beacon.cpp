@@ -7,16 +7,22 @@
 #include "SHTC3Sensor.h"
 #include "aprsis.h"
 #include "display.h"
+#include "message.h"
 
 extern logging::Logger logger;
 extern ConfigurationCommon commonConfig;
 extern ConfigurationTracker trackerConfig;
 extern ConfigurationGateway gatewayConfig;
 extern ConfigurationRouter routerConfig;
+extern ConfigurationMessaging messagingConfig;
 extern uint8_t iGateRegion;
 LastTXLocation lastTX;
 static bool ready_to_sleep = false;
 static uint16_t tx_count = 1;
+
+long last_new_message_rx = 0;
+
+static const String header = "<\xff\x01";//Header for https://github.com/lora-aprs/LoRa_APRS_iGate compatibility
 
 ICACHE_RAM_ATTR void setTXFlag(void) {
   // we sent a packet, set the flag
@@ -64,12 +70,27 @@ bool smartBeaconDecision() {
 
   calcLocator(newGrid6,gps.location.lat(),gps.location.lng(),8);
 
-  show_display_six_lines_big_header(trackerConfig.beacon.callsign,
-              "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
-              "Locator: " + String(newGrid6),
-              String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
-              "Beacon Rate: "+ String(beacon_rate)+" secs", 
-              "Last TX "+String((int)secs_since_beacon)+" secs ago",0);
+  if (messagingConfig.active) {
+    if(newMessageRecieved()){
+      last_new_message_rx = millis();
+    }
+    if((millis()-last_new_message_rx) > 10000) {
+      show_display_six_lines_big_header(trackerConfig.beacon.callsign,
+                  "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
+                  "Locator: " + String(newGrid6),
+                  String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
+                  "Last TX "+String((int)secs_since_beacon)+" secs ago", 
+                  String(getUnreadDirectMessageCount())+" new message",0);
+    }
+
+  } else {
+    show_display_six_lines_big_header(trackerConfig.beacon.callsign,
+                "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
+                "Locator: " + String(newGrid6),
+                String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
+                "Beacon Rate: "+ String(beacon_rate)+" secs", 
+                "Last TX "+String((int)secs_since_beacon)+" secs ago",0);
+  }
 
   if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
     display_toggle(false);
@@ -167,7 +188,7 @@ String getiGateLocationAPRSMessage() {
   String aprsComment = gatewayConfig.igate.aprsComment;
   String message = gatewayConfig.igate.callsign +">APLIGP:!"+latitude+symbolTable+longitude+symbolCode+" "+aprsComment;
 
-  if(gatewayConfig.igate.wx) {
+  if(gatewayConfig.igate.wx && commonConfig.deviceModel != device_lightgateway_1_0) {
     symbolCode = "_";
 
     int temperatureF = (int)getTemperatureF();
@@ -203,7 +224,7 @@ String getiGateLocationAPRSMessage() {
 String getiGateStatusAPRSMessage(){
   
   String message = gatewayConfig.igate.callsign +">APLIGP:>";
-
+  
   float rxFreq = commonConfig.lora.frequencyRX;
   char rx_freq_buff[7];
   dtostrf(rxFreq, 7, 3, rx_freq_buff);
@@ -220,7 +241,9 @@ String getiGateStatusAPRSMessage(){
     message += "RX Only LoRa iGate on "+rx_freq_str+"MHz";
   }
 
-  if(!gatewayConfig.igate.wx) {
+  if(gatewayConfig.igate.wx || commonConfig.deviceModel == device_lightgateway_1_0) {
+    return message;
+  }
     float temperature = getTemperature();
 
     char temperature_buff[6];
@@ -253,7 +276,7 @@ String getiGateStatusAPRSMessage(){
     }    
 
     message += " Temp:"+temperature_str+String(getTemperatureUnit()) +", Humid:"+ humidity_str+"%";    
-  }
+
 
   return message;
 }
@@ -262,38 +285,68 @@ String getRouterStatusAPRSMessage(){
   
   String message = routerConfig.digi.callsign +">APLIGP:>";
 
-    float temperature = getTemperature();
+  float rxFreq = commonConfig.lora.frequencyRX;
+  char rx_freq_buff[7];
+  dtostrf(rxFreq, 7, 3, rx_freq_buff);
 
-    char temperature_buff[6];
-    dtostrf(temperature, 6, 2, temperature_buff);
+  String rx_freq_str;
+  for (uint8_t i = 0; i < 7; i++)
+  {
+    rx_freq_str += String((char)rx_freq_buff[i]);
+  }    
 
-    String temperature_str;
-    for (uint8_t i = 0; i < 6; i++)
-    {
-      temperature_str += String((char)temperature_buff[i]);
-    }
-    
-    float humidity = getHumidity();
-    char humidity_buff[5];
-    dtostrf(humidity, 5, 2, humidity_buff);
+  message += "LoRa Digi on "+rx_freq_str+"MHz";
 
-    String humidity_str;
+  if(commonConfig.deviceModel == device_lightgateway_1_0) {
+    return message;
+  }
+
+  float temperature = getTemperature();
+
+  char temperature_buff[6];
+  dtostrf(temperature, 6, 2, temperature_buff);
+
+  String temperature_str;
+  for (uint8_t i = 0; i < 6; i++)
+  {
+    temperature_str += String((char)temperature_buff[i]);
+  }
+
+  float humidity = getHumidity();
+  char humidity_buff[5];
+  dtostrf(humidity, 5, 2, humidity_buff);
+
+  String humidity_str;
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    humidity_str += String((char)humidity_buff[i]);
+  }        
+
+  float battVoltage = readBatteryVoltage();
+  char batt_voltage_buff[4];
+  dtostrf(battVoltage, 4, 2, batt_voltage_buff);
+
+  String batt_voltage_str;
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    batt_voltage_str += String((char)batt_voltage_buff[i]);
+  } 
+
+  message += " Temp:"+temperature_str+String(getTemperatureUnit()) +", Humid:"+ humidity_str+"%, Batt: "+batt_voltage_str+"V";  
+
+  if(commonConfig.deviceModel == device_lightgateway_plus_1_0) {
+    float solarVoltage = readSolarVoltage();
+    char solar_voltage_buff[5];
+    dtostrf(solarVoltage, 5, 2, solar_voltage_buff);
+
+    String solar_voltage_str;
     for (uint8_t i = 0; i < 5; i++)
     {
-      humidity_str += String((char)humidity_buff[i]);
-    }        
+      solar_voltage_str += String((char)solar_voltage_buff[i]);
+    }       
 
-    float voltage = readBatteryVoltage();
-    char voltage_buff[4];
-    dtostrf(voltage, 4, 2, voltage_buff);
-
-    String voltage_str;
-    for (uint8_t i = 0; i < 4; i++)
-    {
-      voltage_str += String((char)voltage_buff[i]);
-    }    
-
-    message += "Temp:"+temperature_str+String(getTemperatureUnit()) +", Humid:"+ humidity_str+"%, Batt: "+voltage_str+"V";  
+    message += ", Solar: "+solar_voltage_str+"V";  
+  }
 
   return message;
 }
@@ -320,7 +373,13 @@ String getTrackerLocationAPRSMessage() {
   if (trackerConfig.beacon.path != "") {
       path = "," + trackerConfig.beacon.path;
   }
-  message += trackerConfig.beacon.callsign +">APLIGP"+path+":/";
+
+  String messagingIdentifier = "/";
+  if(messagingConfig.active) {
+    messagingIdentifier = "@";
+  }
+
+  message += trackerConfig.beacon.callsign +">APLIGP"+path+":"+messagingIdentifier;
 
   String timestamp = encodeHMSTimestamp(gps.time.hour(), gps.time.minute(), gps.time.second()); //Zulu time DHM timestamp
   message += timestamp;
@@ -427,10 +486,14 @@ String getTrackerLocationAPRSMessage() {
     }     
 
     message += txCountComment + temperatureComment + humidityComment + voltageComment;
+
+    if((trackerConfig.beacon.symbolCode=="O" || trackerConfig.beacon.gpsMode == GPS_MODE_BALLOON) && gps.location.isValid()){
+      message += " "+String(gps.satellites.value()) + "S";
+    }     
     
-  if(getTXCount() % trackerConfig.beacon.sendCommentAfterXBeacons == 0){
-    message += " "+ trackerConfig.beacon.aprsComment;
-  }
+  	if(getTXCount() % trackerConfig.beacon.sendCommentAfterXBeacons == 0){
+    	message += " "+ trackerConfig.beacon.aprsComment;
+ 	}
     
   return message;
 }
@@ -451,18 +514,71 @@ void increaseTXCount(){
 
 }
 
+boolean messageTX(String aprsMessage) {
+  boolean state = false;
+  if(getTransmittedFlag()) {
+    //reset flag
+    setTransmittedFlag(false);
+
+    getSX126XRadio().clearPacketReceivedAction();//Disable RX interrupt.
+
+    int transmissionState = RADIOLIB_ERR_UNKNOWN;
+    //String aprsMessage;
+    //aprsMessage = getTrackerLocationAPRSMessage();
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Message (%s) transmitting, payload size: %d bytes", aprsMessage.c_str(),aprsMessage.length()+header.length());
+
+    //Serial.println(aprsMessage);    
+    aprsMessage = header + aprsMessage;
+    transmissionState = getSX126XRadio().transmit(aprsMessage);
+
+    if (transmissionState == RADIOLIB_ERR_NONE) {
+      // packet was successfully sent
+      state = true;
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "LoRa transmission completed...");
+    } else {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "LoRa transmission failed, code : %d", transmissionState);
+    }
+
+    /**
+    lastTX.millis     = millis();
+    lastTX.latitude   = (float)gps.location.lat();
+    lastTX.longitude  = (float)gps.location.lng();
+    lastTX.heading    = gps.course.isValid() ? (int)gps.course.deg() : 0;
+    lastTX.speed      = gps.speed.isValid() ? (int)gps.speed.kmph() : 0;
+    increaseTXCount();
+     */      
+    
+    getSX126XRadio().finishTransmit();
+    setTransmittedFlag(true);
+    //ready_to_sleep = true;
+
+    if(messagingConfig.active) {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Starting to listen LoRa APRS packets again...");
+      getSX126XRadio().setPacketReceivedAction(setRXFlag);  
+
+      int state = getSX126XRadio().startReceive();
+      if (state == RADIOLIB_ERR_NONE) {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "LoRa", "Success! (Listening LoRa APRS packets now)");
+      } else {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "Listening LoRa packets failed, code:  %d", state);      
+        while (true);
+      }    
+    }
+
+  }
+  return state;
+}
+
 void trackerStatusTX() {
 
   if(getTransmittedFlag()) {
     //reset flag
     setTransmittedFlag(false);
 
-    digitalWrite(LORA_TX_PIN,HIGH);
-    digitalWrite(LORA_RX_PIN,LOW);
+    getSX126XRadio().clearPacketReceivedAction();//Disable RX interrupt.
 
     int transmissionState = RADIOLIB_ERR_UNKNOWN;
     String aprsMessage;
-    String header = "<\xff\x01";//Header for https://github.com/lora-aprs/LoRa_APRS_iGate compatibility
 
     aprsMessage = getTrackerStatusAPRSMessage();
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Status Message (%s) transmitting, payload size: %d bytes", aprsMessage.c_str(),aprsMessage.length()+header.length());
@@ -480,11 +596,21 @@ void trackerStatusTX() {
 
     }
     getSX126XRadio().finishTransmit();
-
+    setTransmittedFlag(true);
     ready_to_sleep = true;
 
-    digitalWrite(LORA_TX_PIN,LOW);
-    digitalWrite(LORA_RX_PIN,HIGH);
+    if(messagingConfig.active) {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Starting to listen LoRa APRS packets again...");
+      getSX126XRadio().setPacketReceivedAction(setRXFlag);  
+
+      int state = getSX126XRadio().startReceive();
+      if (state == RADIOLIB_ERR_NONE) {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "LoRa", "Success! (Listening LoRa APRS packets now)");
+      } else {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "Listening LoRa packets failed, code:  %d", state);      
+        while (true);
+      }    
+    }
 
   }
 }
@@ -495,12 +621,10 @@ void trackerLocationTX() {
     //reset flag
     setTransmittedFlag(false);
 
-    digitalWrite(LORA_TX_PIN,HIGH);
-    digitalWrite(LORA_RX_PIN,LOW);
+    getSX126XRadio().clearPacketReceivedAction();//Disable RX interrupt.
 
     int transmissionState = RADIOLIB_ERR_UNKNOWN;
     String aprsMessage;
-    String header = "<\xff\x01";//Header for https://github.com/lora-aprs/LoRa_APRS_iGate compatibility
 
     aprsMessage = getTrackerLocationAPRSMessage();
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Location Message (%s) transmitting, payload size: %d bytes", aprsMessage.c_str(),aprsMessage.length()+header.length());
@@ -524,11 +648,21 @@ void trackerLocationTX() {
     increaseTXCount();      
     
     getSX126XRadio().finishTransmit();
-
+    setTransmittedFlag(true);
     ready_to_sleep = true;
 
-    digitalWrite(LORA_TX_PIN,LOW);
-    digitalWrite(LORA_RX_PIN,HIGH);
+    if(messagingConfig.active) {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Starting to listen LoRa APRS packets again...");
+      getSX126XRadio().setPacketReceivedAction(setRXFlag);  
+
+      int state = getSX126XRadio().startReceive();
+      if (state == RADIOLIB_ERR_NONE) {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "LoRa", "Success! (Listening LoRa APRS packets now)");
+      } else {
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "Listening LoRa packets failed, code:  %d", state);      
+        while (true);
+      }    
+    }
 
   }
 }
@@ -541,10 +675,8 @@ void routerTX(String aprsMessage) {
 
     getSX126XRadio().clearPacketReceivedAction();//Disable RX interrupt.
 
-    digitalWrite(LORA_TX_PIN,HIGH);
-    digitalWrite(LORA_RX_PIN,LOW);  
-
-    String header = "<\xff\x01";//Header for https://github.com/lora-aprs/LoRa_APRS_iGate compatibility
+    //digitalWrite(LORA_TX_PIN,HIGH);
+    //digitalWrite(LORA_RX_PIN,LOW);  
 
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "routerTX", "Digipeated APRS message:");         
     Serial.println(aprsMessage);    
@@ -566,8 +698,8 @@ void routerTX(String aprsMessage) {
     getSX126XRadio().finishTransmit();
     setTransmittedFlag(true);
 
-    digitalWrite(LORA_TX_PIN,LOW);
-    digitalWrite(LORA_RX_PIN,HIGH);
+    //digitalWrite(LORA_TX_PIN,LOW);
+    //digitalWrite(LORA_RX_PIN,HIGH);
 
     delay(100);
 
@@ -594,24 +726,38 @@ bool isTrackerReadyToSleep(){
   return ready_to_sleep;
 }
 
-void displayRegularBeaconInfo() {
+void displayRegularBeaconInfo(unsigned long lastTXTime) {
 
-  char newGrid6[9];
-  calcLocator(newGrid6,gps.location.lat(),gps.location.lng(),8);
-  int secs_since_beacon = (int) (millis() - lastTX.millis) / 1000;
-  int nextTX = trackerConfig.beacon.interval - secs_since_beacon;
+        char newGrid6[9];
+        calcLocator(newGrid6,gps.location.lat(),gps.location.lng(),8);
+        int secs_since_beacon = (int) (millis() - lastTXTime) / 1000;
+        int nextTX = trackerConfig.beacon.interval - secs_since_beacon;
 
-  show_display_six_lines_big_header(trackerConfig.beacon.callsign,
-              "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
-              "Locator: " + String(newGrid6),
-              String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
-              "GPS Sats: "+String(gps.satellites.value()), 
-              "Next TX: "+String(nextTX)+" secs",0);
+        if (messagingConfig.active) {
+          if(newMessageRecieved()){
+            last_new_message_rx = millis();
+          }
+          if((millis()-last_new_message_rx) > 10000) {
+            show_display_six_lines_big_header(trackerConfig.beacon.callsign,
+                        "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
+                        "Loc: " + String(newGrid6)+" Sats: "+String(gps.satellites.value()),
+                        String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
+                        "Next TX: "+String(nextTX)+" secs", 
+                        String(getUnreadDirectMessageCount())+" new message",0);
+          }
+        } else {
+          show_display_six_lines_big_header(trackerConfig.beacon.callsign,
+                      "S:"+String((int)getSpeed()) + getSpeedUnit()+ " A:"+String((int)getAltitude()) + getAltitudeUnit(),
+                      "Locator: " + String(newGrid6),
+                      String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
+                      "GPS Sats: "+String(gps.satellites.value()), 
+                      "Next TX: "+String(nextTX)+" secs",0);
+        }
 
-  if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
-    display_toggle(false);
-  } else {
-    display_toggle(true);
-  }              
+        if(!commonConfig.display.always_on && secs_since_beacon > commonConfig.display.display_timeout){
+          display_toggle(false);
+        } else {
+          display_toggle(true);
+        }     
 
 }

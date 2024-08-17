@@ -17,6 +17,11 @@ extern ConfigurationCommon commonConfig;
 
 #define ROUTER_STATUS_BEACON_INTERVAL 900
 #define ROUTER_LOCATION_BEACON_INTERVAL 1200
+#define ROUTER_RESTART_INTERVAL 259200
+
+int16_t statusBeaconInterval = 0;
+int16_t locationBeaconInterval = 0;
+
 static uint16_t digipeated_packet_count=0;
 static float rssi;
 static float snr;
@@ -67,11 +72,30 @@ void tasksendRXPacketsToRF(void * parameter){
              
         if ((packet.substring(0, 3) == "\x3c\xff\x01") && (packet.indexOf("TCPIP") == -1) && (packet.indexOf("NOGATE") == -1)) {
           String sender = packet.substring(3,packet.indexOf(">"));
-          if ((packet.indexOf("WIDE1-1") > 10) && (routerConfig.digi.callsign != sender)) {
+
+          bool solarDigipeatingDisabled= false;
+          
+          if (commonConfig.deviceModel == device_lightgateway_plus_1_0 ) {
+              solarDigipeatingDisabled = getTemperatureC() > commonConfig.solar.disable_digipeating_above_temp 
+                                        || readBatteryVoltage() < commonConfig.solar.disable_digipeating_below_volt;
+          }
+          int16_t indexWIDE1_1= packet.indexOf("WIDE1-1");
+          int16_t indexDigiInPath= packet.indexOf(routerConfig.digi.callsign);
+          int16_t indexGreaterSymbol= packet.indexOf(">");
+          int16_t indexColonSymbol= packet.indexOf(":");
+
+          bool wide1_1 = indexWIDE1_1 > indexGreaterSymbol && indexWIDE1_1 < indexColonSymbol;
+          bool digiInPath = indexDigiInPath > indexGreaterSymbol && indexDigiInPath < indexColonSymbol;
+
+          if ((wide1_1 || digiInPath) && (routerConfig.digi.callsign != sender) && !solarDigipeatingDisabled) {
             show_display_two_lines_big_header(sender,packet.substring(packet.indexOf(">")));
             loraPacket = packet.substring(3);             
-            Serial.println(loraPacket);              
-            loraPacket.replace("WIDE1-1", routerConfig.digi.callsign + "*");
+            Serial.println(loraPacket);
+            if (digiInPath) {
+              loraPacket.replace(routerConfig.digi.callsign, routerConfig.digi.callsign + "*");
+            } else {
+              loraPacket.replace("WIDE1-1", routerConfig.digi.callsign + "*");
+            }
             routerTX(loraPacket);
             ++digipeated_packet_count;
             lastDigiRX.callsign = sender;
@@ -152,6 +176,7 @@ void tasksendRouterLocationToRF(void * parameter){
   logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "tasksendRouterLocationToRF", "xPortGetCoreID: %d", xPortGetCoreID());
   long last_router_loc_packet_time = -1200000;
   long last_router_status_packet_time = -800000;
+  long last_router_startup_packet_time = millis();
   for(;;){
     esp_task_wdt_reset();
     int lastRXMinutes = 0;
@@ -159,12 +184,21 @@ void tasksendRouterLocationToRF(void * parameter){
       lastRXMinutes = (int)(((millis() - lastDigiRX.millis)/1000)/60);
     }
 
+  if(commonConfig.deviceModel == device_lightgateway_1_0) {
+    show_display_six_lines_big_header(routerConfig.digi.callsign,
+                String(readBatteryVoltage()) + "V",
+                "Last RX: " + lastDigiRX.callsign,
+                "RSSI: " + String(lastDigiRX.rssi),
+                "SNR : " + String(lastDigiRX.snr),
+                "Time: " + String(lastRXMinutes) + " min ago",0);   
+  } else {
     show_display_six_lines_big_header(routerConfig.digi.callsign,
                 String(readBatteryVoltage()) + "V  T:" + String((int)getTemperature())+String(getTemperatureUnit())+" H:"+String((int)getHumidity())+"%",
                 "Last RX: " + lastDigiRX.callsign,
                 "RSSI: " + String(lastDigiRX.rssi),
                 "SNR : " + String(lastDigiRX.snr),
-                "Time: " + String(lastRXMinutes) + " min ago",0);   
+                "Time: " + String(lastRXMinutes) + " min ago",0);       
+  }
 
   int secs_since_beacon = (int)(millis() - lastDigiRX.millis) / 1000;
 
@@ -174,8 +208,25 @@ void tasksendRouterLocationToRF(void * parameter){
     display_toggle(true);
   }
 
+    if (commonConfig.deviceModel == device_lightgateway_plus_1_0) {
+      if(getTemperatureC() < commonConfig.solar.disable_charging_below_temp) {
+        digitalWrite(SOLAR_CHARGE_DISABLE_PIN,HIGH);
+      } else {
+        digitalWrite(SOLAR_CHARGE_DISABLE_PIN,LOW);
+      }      
+    } 
+
+    if (commonConfig.deviceModel == device_lightgateway_plus_1_0 && readBatteryVoltage() != 0 
+      && readBatteryVoltage() < commonConfig.solar.increase_status_loc_tx_interval_below_volt ) {
+        statusBeaconInterval = 3600;
+        locationBeaconInterval = 3600;
+    } else {
+        statusBeaconInterval = ROUTER_STATUS_BEACON_INTERVAL;
+        locationBeaconInterval = ROUTER_LOCATION_BEACON_INTERVAL;
+    } 
+
     //Sending Router location to RF    
-    if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > ROUTER_LOCATION_BEACON_INTERVAL * 1000))
+    if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > locationBeaconInterval * 1000))
     {
       display_toggle(true);
       show_display("\r\n  Loc TX",0,2);
@@ -185,14 +236,20 @@ void tasksendRouterLocationToRF(void * parameter){
     }
 
     //Sending Router status message to RF 
-    if (millis() - last_router_status_packet_time > ROUTER_STATUS_BEACON_INTERVAL * 1000) {
+    if (millis() - last_router_status_packet_time > statusBeaconInterval * 1000) {
       display_toggle(true);
       show_display("\r\nStatus TX",0,2);
       String statusMessage = getRouterStatusAPRSMessage();
+      statusMessage += " DigiPcktC:" + String(digipeated_packet_count);
+      digipeated_packet_count = 0;
       routerTX(statusMessage);
       last_router_status_packet_time = millis();
     }    
     
+    if (millis() - last_router_startup_packet_time > ROUTER_RESTART_INTERVAL * 1000) {
+      esp_restart();
+    }       
+
     vTaskDelay(1000/ portTICK_PERIOD_MS);
   }
 

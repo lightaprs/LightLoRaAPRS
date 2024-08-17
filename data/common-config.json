@@ -1,12 +1,19 @@
 {
 	"debug": true,
 	"device_mode": 1,
+	"device_model": 0,
 	"metric_system": true,
-	"temperature_sensor_correction": -5.0,
-	"humidity_sensor_correction": 20,
+	"temperature_sensor_correction": 0.0,
+	"humidity_sensor_correction": 0,
+    "solar": {
+		"disable_charging_below_temp": -4.0,
+    	"disable_digipeating_above_temp": 55.0,
+		"disable_digipeating_below_volt": 3.5,
+		"increase_status_loc_tx_interval_below_volt": 3.3
+    },
 	"display": {
         "always_on": true,
-        "display_timeout": 5,		
+        "display_timeout": 10,		
 		"turn_180": false
     },	
 	"lora": {

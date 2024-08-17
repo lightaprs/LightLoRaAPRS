@@ -6,6 +6,8 @@ void tasksendStatusMessageTX(void * parameter);
 void tasksendRegularBeaconTX(void * parameter);
 void tasksendSmartBeaconTX(void * parameter);
 void tasksendDeepSleepBeaconTX(void * parameter);
-
+void tasksendRXPacketsToMessaging(void * parameter);
+void tasksendRXPacketsToQueueTrck(void * parameter);
+void taskmessagingButtonPressCheck(void * parameter);
 
 #endif

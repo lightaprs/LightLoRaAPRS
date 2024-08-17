@@ -14,6 +14,10 @@ SHTC3 mySHTC3;
 
 void setup_SHTC3Sensor()
 {
+    if(commonConfig.deviceModel == device_lightgateway_1_0) {
+        return;
+    }
+
     show_display_print("SHTC3 setup...");
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "SHTC3", "SHTC3 Temp & Humidity Sensor init...");
 

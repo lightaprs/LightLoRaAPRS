@@ -1,8 +1,8 @@
 {
     "igate": {
         "callsign": "NOCALL-10",            
-        "aprs_comment": "LightTracker Plus LoRa APRS iGate by TA2MUN & TA3YNS",
-        "use_gps_if_possible": true,
+        "aprs_comment": "Light LoRa APRS iGate by TA2MUN & TA3YNS https://github.com/lightaprs/LightLoRaAPRS",
+        "use_gps_if_possible": false,
         "gps_timeout": 60,          
         "latitude": 0.0,
         "longitude": 0.0,

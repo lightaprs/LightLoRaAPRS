@@ -20,6 +20,10 @@ void load_config(){
     logger.setDebugLevel(logging::LoggerLevel::LOGGER_LEVEL_INFO);
   }
 
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "ConfigMan", "Messaging Configuration Loading..."); 
+  ConfigurationManagement confmgMessaging("/messaging-config.json");
+  messagingConfig = confmgMessaging.readMessagingConfiguration();
+
   if (commonConfig.deviceMode < 0 || commonConfig.deviceMode > 3) {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "CommonConfig", "Unkown mode... update 'data/common-config.json' via Wi-Fi or "
                 "upload it via \"Upload File System image\"!");
@@ -88,7 +92,8 @@ void load_config(){
       invalidConfig = true;
     }   
     
-  }
+  } 
+
   if (!invalidConfig) {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "ConfigMan", "Configurations loaded!");
     show_display_println("done.");

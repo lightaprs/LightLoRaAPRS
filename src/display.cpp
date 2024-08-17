@@ -205,6 +205,23 @@ void show_display_two_lines_big_header(String line1, String line2, int wait) {
   delay(wait);
 }
 
+void show_display_three_lines_big_header(String line1, String line2, String line3, int wait) {
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(0, 0);
+  display.println(line1);
+  display.setTextSize(1);
+  display.setCursor(0, 17);
+  display.println(line2);
+  display.setCursor(0, 27);
+  display.println(line3);  
+  display.ssd1306_command(SSD1306_SETCONTRAST);
+  display.ssd1306_command(1);
+  display.display();
+  delay(wait);
+}
+
 void show_display_six_lines_big_header(String line1, String line2, String line3, String line4, String line5, String line6, int wait) {
   display.clearDisplay();
   display.setTextColor(WHITE);

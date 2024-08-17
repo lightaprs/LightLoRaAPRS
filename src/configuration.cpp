@@ -23,7 +23,8 @@ ConfigurationCommon ConfigurationManagement::readCommonConfiguration() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return ConfigurationCommon();
   }
-  DynamicJsonDocument  data(2048);
+  //DynamicJsonDocument  data(2048);
+  JsonDocument data;
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
@@ -35,13 +36,19 @@ ConfigurationCommon ConfigurationManagement::readCommonConfiguration() {
     ConfigurationCommon conf;
 
     conf.debug                    = data["debug"] | false;
-    conf.deviceMode               = data["device_mode"] | -1;
+    conf.deviceMode               = data["device_mode"] | 1;
+    conf.deviceModel              = data["device_model"] | 0;
     conf.metricSystem             = data["metric_system"] | true;
-    conf.tempSensorCorrection     = data["temperature_sensor_correction"] | -5.0;
-    conf.humiditySensorCorrection = data["humidity_sensor_correction"] | 20;
+    conf.tempSensorCorrection     = data["temperature_sensor_correction"] | 0.0;
+    conf.humiditySensorCorrection = data["humidity_sensor_correction"] | 0;
+
+    conf.solar.disable_charging_below_temp                = data["solar"]["disable_charging_below_temp"] | -4.0;
+    conf.solar.disable_digipeating_above_temp             = data["solar"]["disable_digipeating_above_temp"] | 50.0;
+    conf.solar.disable_digipeating_below_volt             = data["solar"]["disable_digipeating_below_volt"] | 3.3;
+    conf.solar.increase_status_loc_tx_interval_below_volt = data["solar"]["increase_status_loc_tx_interval_below_volt"] | 3.0;
 
     conf.display.always_on          = data["display"]["always_on"] | true;
-    conf.display.display_timeout    = data["display"]["display_timeout"] | 5;
+    conf.display.display_timeout    = data["display"]["display_timeout"] | 10;
     conf.display.turn_180           = data["display"]["turn_180"] | false;
 
     conf.lora.frequencyRX     = data["lora"]["frequency_rx"] | 433.775;
@@ -63,13 +70,20 @@ void ConfigurationManagement::writeCommonConfiguration(ConfigurationCommon conf)
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
-  DynamicJsonDocument data(2048);
+  //DynamicJsonDocument data(2048);
+  JsonDocument data;
 
     data["debug"]                         = conf.debug;
     data["device_mode"]                   = conf.deviceMode;
+    data["device_model"]                  = conf.deviceModel;
     data["metric_system"]                 = conf.metricSystem; 
     data["temperature_sensor_correction"] = conf.tempSensorCorrection;
     data["humidity_sensor_correction"]    = conf.humiditySensorCorrection;
+
+    data["solar"]["disable_charging_below_temp"]                  = conf.solar.disable_charging_below_temp;
+    data["solar"]["disable_digipeating_above_temp"]               = conf.solar.disable_digipeating_above_temp;
+    data["solar"]["disable_digipeating_below_volt"]               = conf.solar.disable_digipeating_below_volt;
+    data["solar"]["increase_status_loc_tx_interval_below_volt"]   = conf.solar.increase_status_loc_tx_interval_below_volt;
 
     data["display"]["always_on"]          = conf.display.always_on;
     data["display"]["display_timeout"]    = conf.display.display_timeout;
@@ -95,7 +109,8 @@ ConfigurationTracker ConfigurationManagement::readTrackerConfiguration() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return ConfigurationTracker();
   }
-  DynamicJsonDocument  data(2048);
+  //DynamicJsonDocument  data(2048);
+  JsonDocument data;
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
@@ -143,7 +158,8 @@ void ConfigurationManagement::writeTrackerConfiguration(ConfigurationTracker con
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
-  DynamicJsonDocument data(2048);
+  //DynamicJsonDocument data(2048);
+  JsonDocument data;
 
     data["beacon"]["callsign"]                    = conf.beacon.callsign;
     data["beacon"]["symbol_code"]                 = conf.beacon.symbolCode;
@@ -184,7 +200,8 @@ ConfigurationGateway ConfigurationManagement::readGatewayConfiguration() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return ConfigurationGateway();
   }
-  DynamicJsonDocument  data(2048);
+  //DynamicJsonDocument  data(2048);
+  JsonDocument data;
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
@@ -237,7 +254,8 @@ void ConfigurationManagement::writeGatewayConfiguration(ConfigurationGateway con
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
-  DynamicJsonDocument data(2048);
+  //DynamicJsonDocument data(2048);
+  JsonDocument data;
 
     data["igate"]["callsign"]             = conf.igate.callsign;
     data["igate"]["aprs_comment"]         = conf.igate.aprsComment;
@@ -282,7 +300,8 @@ ConfigurationRouter ConfigurationManagement::readRouterConfiguration() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return ConfigurationRouter();
   }
-  DynamicJsonDocument  data(2048);
+  //DynamicJsonDocument  data(2048);
+  JsonDocument data;
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
@@ -310,7 +329,8 @@ void ConfigurationManagement::writeRouterConfiguration(ConfigurationRouter conf)
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
-  DynamicJsonDocument data(2048);
+  //DynamicJsonDocument data(2048);
+  JsonDocument data;
 
     data["digi"]["callsign"]             = conf.digi.callsign;
     data["digi"]["aprs_comment"]         = conf.digi.aprsComment;
@@ -319,6 +339,66 @@ void ConfigurationManagement::writeRouterConfiguration(ConfigurationRouter conf)
     data["digi"]["latitude"]             = conf.digi.latitude;
     data["digi"]["longitude"]            = conf.digi.longitude;
     data["digi"]["send_digi_location"]   = conf.digi.sendDigiLoc;
+
+  serializeJson(data, file);
+  file.close();
+}
+
+// cppcheck-suppress unusedFunction
+ConfigurationMessaging ConfigurationManagement::readMessagingConfiguration() {
+  File file = SPIFFS.open(mFilePath);
+  if (!file) {
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
+    return ConfigurationMessaging();
+  }
+  //DynamicJsonDocument  data(2048);
+  JsonDocument data;
+  DeserializationError error = deserializeJson(data, file);
+
+  if (error) {
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to read file %s, upload Filesystem Image",mFilePath.c_str());
+    show_display_two_lines_big_header("ERROR", "Failed to read configuration file, upload Filesystem Image");
+  }
+  file.close();
+
+    ConfigurationMessaging conf;
+
+    conf.active                  = data["active"] | true;
+    conf.path                    = data["path"].as<String>();
+    conf.defaultGroup            = data["default_group"].as<String>();
+    conf.storeMessages           = data["store_messages"] | true;
+    conf.directRXmaxCount        = data["direct_rx_messages_max_store_count"];
+    conf.groupRXmaxCount         = data["group_rx_messages_max_store_count"];
+    conf.blnRXmaxCount           = data["bln_rx_messages_max_store_count"];
+
+    conf.wifi_ap.autoEnableDisable = data["wifi_ap"]["auto_enable_disable"]  | true;
+    conf.wifi_ap.ssid              = data["wifi_ap"]["ssid"].as<String>();
+    conf.wifi_ap.password          = data["wifi_ap"]["password"].as<String>();    
+
+    return conf;
+}
+
+// cppcheck-suppress unusedFunction
+void ConfigurationManagement::writeMessagingConfiguration(ConfigurationMessaging conf) {
+  File file = SPIFFS.open(mFilePath, "w");
+  if (!file) {
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
+    return;
+  }
+  //DynamicJsonDocument data(2048);
+  JsonDocument data;
+
+    data["active"]                                     = conf.active;
+    data["path"]                                       = conf.path;
+    data["default_group"]                              = conf.defaultGroup;
+    data["store_messages"]                             = conf.storeMessages;
+    data["direct_rx_messages_max_store_count"]         = conf.directRXmaxCount;
+    data["group_rx_messages_max_store_count"]          = conf.groupRXmaxCount;
+    data["bln_rx_messages_max_store_count"]            = conf.blnRXmaxCount;
+
+    data["wifi_ap"]["autoEnableDisable"]               = conf.wifi_ap.autoEnableDisable;
+    data["wifi_ap"]["ssid"]                            = conf.wifi_ap.ssid;
+    data["wifi_ap"]["password"]                        = conf.wifi_ap.password;
 
   serializeJson(data, file);
   file.close();

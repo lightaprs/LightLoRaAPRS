@@ -19,9 +19,9 @@ void setup_Button()
   BUTTON_PIN, // Input pin for the button
   LOW,       // Button is active LOW
   true       // Enable internal pull-up resistor
-);
+  );
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), checkTicks, CHANGE);
-  btn.attachPressStart(pressStart);
+  btn.attachClick(pressStart);
 }
 
 void pressStart() {
@@ -37,3 +37,4 @@ bool isButtonPressed(){
        return false;
     }    
 }
+

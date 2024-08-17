@@ -1,0 +1,15 @@
+{
+  "active": false,
+  "path": "WIDE1-1",
+  "default_group": "CQ",
+  "store_messages": true,
+  "direct_rx_messages_max_store_count": 10,
+  "group_rx_messages_max_store_count": 10,
+  "bln_rx_messages_max_store_count": 10,
+  "wifi_ap": {
+    "active": true,
+    "auto_enable_disable": true,
+    "ssid": "Light_Message",
+    "password": "Light12345"
+  }
+}

@@ -9,6 +9,19 @@
 extern logging::Logger logger;
 bool gps_fix_search_led = true;
 
+String fillerSpaces (String text, int maxLength) {
+  int textSize = text.length();
+  String filledText = text;
+  if (textSize < maxLength){
+    for (size_t i = 0; i < (maxLength-textSize); i++)
+    {
+      filledText = filledText + " ";
+    }    
+  }
+
+  return filledText;
+}
+
 void gpsSearchLedBlink(){
     if(gps_fix_search_led) {
       ledBlink(true);
@@ -47,28 +60,33 @@ void printFreeMEM(){
 }
 
 double readBatteryVoltage() {
+  return readVoltage(VOLTAGE_READ_PIN, ADC_MULTIPLIER);
+}
+
+double readSolarVoltage() {
+  return readVoltage(SOLAR_VOLTAGE_READ_PIN, SOLAR_ADC_MULTIPLIER);
+}
+
+double readVoltage(int pin, float multiplier) {
 
   u_int8_t num_samples = 10;
   int sum = 0;             
   u_int8_t sample_count = 0;
 
   while (sample_count < num_samples) {
-    sum += analogRead(VOLTAGE_READ_PIN);
+    sum += analogRead(pin);
     sample_count++;
     delay(10);
   }
 
   int reading_average = sum / num_samples;
 
-  if(reading_average < 1 || reading_average > 4095) return 0;
+  if(reading_average < 150 || reading_average > 4095) return 0;
 
-  float voltage = ADC_MULTIPLIER * (-0.000000000000016 * pow(reading_average,4) + 0.000000000118171 * pow(reading_average,3)- 0.000000301211691 * pow(reading_average,2)+ 0.001109019271794 * reading_average + 0.034143524634089);
+  float voltage = multiplier * (-0.000000000000016 * pow(reading_average,4) + 0.000000000118171 * pow(reading_average,3)- 0.000000301211691 * pow(reading_average,2)+ 0.001109019271794 * reading_average + 0.034143524634089);
 
   return voltage;
 
-  //double reading = analogRead(VOLTAGE_READ_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
-  //if(reading < 1 || reading > 4095) return 0;
-  //return ADC_MULTIPLIER * (-0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089);
 }
 
 //Haversine based bearing calculation
@@ -224,3 +242,4 @@ String createLongForAPRS(double longitude) {
 
   return longStr;
 }
+

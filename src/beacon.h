@@ -18,10 +18,11 @@ String getiGateLocationAPRSMessage();
 String getRouterLocationAPRSMessage();
 void trackerLocationTX();
 void trackerStatusTX();
+boolean messageTX(String aprsMessage);
 void routerTX(String aprsMessage);
 unsigned long getTrackerLastTXTimeStamp();
 bool isTrackerReadyToSleep();
-void displayRegularBeaconInfo();
+void displayRegularBeaconInfo(unsigned long lastTXTime);
 
 struct LastTXLocation {
    long millis = -300000;    

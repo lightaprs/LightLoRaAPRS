@@ -15,17 +15,18 @@ union INT16AsBytes {
     int16_t ival;
     byte bval[2];
 };
-
+String fillerSpaces (String text, int maxLength);
 void printSensorDataReading();
 void printFreeMEM();
 void ledBlink(bool enabled);
 void gpsSearchLedBlink();
 double readBatteryVoltage();
+double readSolarVoltage();
+double readVoltage(int pin, float multiplier);
 float calculateBearing(double lat1, double lon1, double lat2, double lon2);
 void calcLocator(char *result, double lat, double lon, int precision);
 String encodeHMSTimestamp(int hour, int minute, int second);
 String createLatForAPRS(double latitude);
 String createLongForAPRS(double longitude);
-
 
 #endif

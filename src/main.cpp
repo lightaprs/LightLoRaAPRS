@@ -21,8 +21,9 @@
 #include "display.h"
 #include "webserver.h"
 #include "button.h"
+#include "message.h"
 
-#define VERSION "1.0.5"
+#define VERSION "1.1.0"
 
 logging::Logger logger;
 TinyGPSPlus gps;
@@ -30,6 +31,7 @@ ConfigurationCommon commonConfig;
 ConfigurationTracker trackerConfig;
 ConfigurationGateway gatewayConfig;
 ConfigurationRouter routerConfig;
+ConfigurationMessaging messagingConfig;
 RTC_DATA_ATTR int bootCount = 0;
 APRS_IS aprs_is;
 
@@ -55,10 +57,11 @@ void setup() {
   setup_Display();
   show_display("Light Tracker Plus", "Version: " VERSION, 1000);
   load_config();
+  commonConfig.version = VERSION;
   if(isButtonPressed() || isInvalidConfig()){//if BOOT button is pressed or invalid configuration
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "Boot button pressed or invalid config...");
     setup_WebServer();
-  } else {
+  } else {   
     setupLoRa();
     setup_WatchdogTimer();
     setup_SHTC3Sensor();
@@ -77,10 +80,16 @@ void setup_Router(){
     btStop(); //Bluetooth OFF
     show_display_println("\r\nWi-Fi/Bluetooth OFF");
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Wi-Fi", "Wi-Fi and Bluetooth disabled..."); 
-
     show_display_print("LoRa RX init...");
     getSX126XRadio().setPacketReceivedAction(setRXFlag);
     setupRX();
+
+    if (commonConfig.deviceModel == device_lightgateway_plus_1_0) {
+      setCpuFrequencyMhz(40);      
+    } else {
+      setCpuFrequencyMhz(80);
+    }
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "setup_Router", "New CPU Frequency: %d", getCpuFrequencyMhz()); 
 
     if(routerConfig.digi.useGPS) {
       bool isGPSFixed = tryGPSFix(routerConfig.digi.gpsTimeout);
@@ -150,6 +159,10 @@ void setup_Tracker(){
     show_display_print("GPS init...");
     setupGPS();
     show_display_println("done.");
+
+    setCpuFrequencyMhz(80);
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "setup_Tracker", "New CPU Frequency: %d", getCpuFrequencyMhz()); 
+
     if (trackerConfig.beacon.gpsMode != 0)
     {
       delay(1000);
@@ -162,8 +175,11 @@ void setup_Tracker(){
 
     delay(1000);
     show_display("Beacon conf:", 500);
-    //setup LoRa TX
-    getSX126XRadio().setDio1Action(setTXFlag);
+
+    //setup LoRa RX
+    getSX126XRadio().setPacketReceivedAction(setRXFlag);
+    setupRX();
+
     if(trackerConfig.power.deepSleep) {
       show_display_println("Deep Sleep ON.");
       ++bootCount;
@@ -184,7 +200,8 @@ void setup_Tracker(){
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "SmartBeacon enabled, speed and heading data will be used for beacon interval...");
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "Beacon rate(interval) may vary between %d and %d seconds.", trackerConfig.smartBeacon.fastRate, trackerConfig.smartBeacon.slowRate);
     }
-    show_display_print("Tasks setup...",1000); 
+    show_display_print("Tasks setup...",1000);
+    setup_Messaging();
     setup_TrackerTasks();
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "MAIN", "Tracker setup completed...");
   }

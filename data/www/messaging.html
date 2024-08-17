@@ -1,0 +1,321 @@
+<!-- Version 1.0.8 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messaging Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h3 {
+            text-align: center;
+            color: #333;
+            width: 100%;
+        }
+
+        #messageArea {
+            flex-grow: 1;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-y: scroll;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-row input[type="text"], .input-row input[list="addresseeList"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .response.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .char-count {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }        
+
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 100%;
+                height: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 10px;
+            }
+
+            button {
+                margin-top: 5px;
+                padding: 15px;
+            }
+
+            .input-row input[type="text"], .input-row input[list="addresseeList"] {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Messages</h3>
+        <div id="messageArea"></div>
+        <div class="input-section">
+            <div class="input-row">
+                <input type="text" id="senderInput" placeholder="Enter your name">
+            </div>
+            <div class="input-row" style="position: relative;">
+                <input type="text" id="addresseeInput" list="addresseeList" placeholder="Enter recipient" value="CQ">
+                <datalist id="addresseeList"></datalist>
+            </div>
+            <div class="input-row">
+                <input type="text" id="messageInput" placeholder="Type your message here">
+            </div>
+            <div class="char-count" id="charCount">67/67</div>            
+            <button id="sendButton">Send</button>
+        </div>
+        <div id="responseMessage" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            fetchMessages();
+            fetchSender();
+            fetchAddressees();
+            setInterval(fetchMessages, 5000); // Fetch messages every 5 seconds
+        });
+
+        function fetchMessages() {
+            fetch('/direct-messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messageArea = document.getElementById('messageArea');
+
+                    data.forEach(msg => {
+                        const timestamp = new Date(msg.timestamp * 1000);
+                        const day = String(timestamp.getDate()).padStart(2, '0');
+                        const month = String(timestamp.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                        const year = String(timestamp.getFullYear()).slice(-2);
+                        const dateStr = `${day}/${month}/${year}`; // dd/mm/yy format
+                        const timeStr = timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); // 24-hour format
+
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `[${dateStr} ${timeStr}] ${msg.sender} -> ${msg.addressee}: ${msg.message}`;
+                        messageDiv.style.backgroundColor = '#e0e0ff'; // Light blue background for direct messages
+                        messageDiv.style.padding = '5px';
+                        messageDiv.style.borderRadius = '5px';
+                        messageDiv.style.marginBottom = '5px';
+
+                        messageArea.appendChild(messageDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching messages:', error));
+
+            fetch('/group-messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messageArea = document.getElementById('messageArea');
+
+                    data.forEach(msg => {
+                        const timestamp = new Date(msg.timestamp * 1000);
+                        const day = String(timestamp.getDate()).padStart(2, '0');
+                        const month = String(timestamp.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                        const year = String(timestamp.getFullYear()).slice(-2);
+                        const dateStr = `${day}/${month}/${year}`; // dd/mm/yy format
+                        const timeStr = timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); // 24-hour format
+
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `[${dateStr} ${timeStr}] ${msg.sender} -> ${msg.group.trim()}: ${msg.message}`;
+
+                        messageArea.appendChild(messageDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching messages:', error));
+
+            fetch('/bulletin-messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messageArea = document.getElementById('messageArea');
+
+                    data.forEach(msg => {
+                        const timestamp = new Date(msg.timestamp * 1000);
+                        const day = String(timestamp.getDate()).padStart(2, '0');
+                        const month = String(timestamp.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                        const year = String(timestamp.getFullYear()).slice(-2);
+                        const dateStr = `${day}/${month}/${year}`; // dd/mm/yy format
+                        const timeStr = timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); // 24-hour format
+
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `[${dateStr} ${timeStr}] ${msg.sender} -> ${msg.blnid.trim()}: ${msg.message}`;
+                        messageDiv.style.backgroundColor = '#ffe0e0'; // Light red background for bulletin messages
+                        messageDiv.style.padding = '5px';
+                        messageDiv.style.borderRadius = '5px';
+                        messageDiv.style.marginBottom = '5px';
+
+                        messageArea.appendChild(messageDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching messages:', error));                                    
+        }
+
+        function fetchSender() {
+            fetch('/sender-callsign')
+                .then(response => response.json())
+                .then(data => {
+                    const senderInput = document.getElementById('senderInput');
+                    senderInput.value = data.callsign; // Set the sender input field with the fetched data
+                })
+                .catch(error => console.error('Error fetching sender:', error));
+        }
+
+        function fetchAddressees() {
+            fetch('/addressees-list') // Endpoint to fetch the list of addressees
+                .then(response => response.json())
+                .then(data => {
+                    const addresseeList = document.getElementById('addresseeList');
+                    addresseeList.innerHTML = ''; // Clear the datalist
+
+                    data.forEach(addr => {
+                        const option = document.createElement('option');
+                        option.value = addr;
+                        addresseeList.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching addressees:', error));
+        }
+
+        document.getElementById('messageInput').addEventListener('input', function() {
+            const messageInput = document.getElementById('messageInput');
+            const remainingChars = 67 - messageInput.value.length;
+            document.getElementById('charCount').textContent = `${remainingChars}/67`;
+        });
+
+        document.getElementById('sendButton').addEventListener('click', function() {
+            const senderInput = document.getElementById('senderInput');
+            const addresseeInput = document.getElementById('addresseeInput');
+            const messageInput = document.getElementById('messageInput');
+            const sender = senderInput.value;
+            const addressee = addresseeInput.value;
+            const message = messageInput.value;
+
+            if (sender.trim() && addressee.trim() && message.trim()) {
+                // Send the message to the server
+                fetch('/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sender, addressee, message }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Error sending message');
+                    }
+                })
+                .then(data => {
+                    console.log('Server response:', data);
+                    // Add the new message to the message area immediately
+                    const messageArea = document.getElementById('messageArea');
+                    const timestamp = new Date();
+                    const day = String(timestamp.getDate()).padStart(2, '0');
+                    const month = String(timestamp.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                    const year = String(timestamp.getFullYear()).slice(-2);
+                    const dateStr = `${day}/${month}/${year}`; // dd/mm/yy format
+                    const timeStr = timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); // 24-hour format
+
+                    const messageDiv = document.createElement('div');
+                    messageDiv.textContent = `[${dateStr} ${timeStr}] ${sender} -> ${addressee}: ${message}`;
+                    messageDiv.style.backgroundColor = '#e0ffe0'; // Light green background for your messages
+                    messageDiv.style.padding = '5px';
+                    messageDiv.style.borderRadius = '5px';
+                    messageDiv.style.marginBottom = '5px';
+
+                    messageArea.appendChild(messageDiv);
+
+                    messageInput.value = ''; // Clear the message input field
+                    document.getElementById('charCount').textContent = '67/67'; // Reset character count
+                    document.getElementById('responseMessage').style.display = 'none'; // Hide response message if previously shown
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    showResponseMessage('Failed to send message.', 'error');
+                });
+            }
+        });
+
+        function showResponseMessage(message, type) {
+            const responseMessage = document.getElementById('responseMessage');
+            responseMessage.textContent = message;
+            if (type === 'error') {
+                responseMessage.classList.add('error');
+                responseMessage.classList.remove('success');
+                responseMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
