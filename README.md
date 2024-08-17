@@ -1,9 +1,11 @@
 # LightLoRaAPRS
-ESP32-S3 based LoRa APRS (433 MHz) Firmware for LightTracker Plus. Check out the hardware -> https://github.com/lightaprs/LightTracker-Plus-1.0
+ESP32-S3 based LoRa APRS (433 MHz) Firmware for LightGateway & LightTracker Plus. 
 
-![image](https://github.com/lightaprs/LightLoRaAPRS/assets/48382675/505ebd86-4a61-43f0-999b-e3fc780d13f3)
+**LightTracker Plus 1.0** -> https://github.com/lightaprs/LightTracker-Plus-1.0
 
-The main purpose of this basic software is to demonstrate capabilities of [LightTracker Plus 1.0](https://github.com/lightaprs/LightTracker-Plus-1.0) Every LightTracker Plus module is shipped with this firmware so you can start playing with your device immediately.
+**LightGateway 1.0** -> https://github.com/lightaprs/LightGateway-1.0
+
+The main purpose of this basic software is to demonstrate capabilities of [LightTracker Plus 1.0](https://github.com/lightaprs/LightTracker-Plus-1.0) and [LightGateway 1.0](https://github.com/lightaprs/LightGateway-1.0) Every LightGateway and LightTracker Plus module is shipped with this firmware so you can start playing with your device immediately.
 
 ![image](https://github.com/lightaprs/LightLoRaAPRS/assets/48382675/a0017bbe-c8ea-4921-a755-40861533240e)
 
