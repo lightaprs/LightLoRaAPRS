@@ -92,7 +92,8 @@ void tasksendRXPacketsToRF(void * parameter){
             loraPacket = packet.substring(3);             
             Serial.println(loraPacket);
             if (digiInPath) {
-              loraPacket.replace(routerConfig.digi.callsign, routerConfig.digi.callsign + "*");
+              loraPacket.replace(routerConfig.digi.callsign+",", routerConfig.digi.callsign + "*,");
+              loraPacket.replace(routerConfig.digi.callsign+":", routerConfig.digi.callsign + "*:");
             } else {
               loraPacket.replace("WIDE1-1", routerConfig.digi.callsign + "*");
             }

@@ -217,7 +217,8 @@ void tasksendRXPacketsToAPRSIS(void * parameter){
               loraPacket = packet.substring(3);              
               Serial.println(loraPacket);
               if (digiInPath) {
-                loraPacket.replace(gatewayConfig.igate.callsign, gatewayConfig.igate.callsign + "*");
+                loraPacket.replace(gatewayConfig.igate.callsign, gatewayConfig.igate.callsign+"," + "*,");
+                loraPacket.replace(gatewayConfig.igate.callsign, gatewayConfig.igate.callsign+":" + "*:");
               } else {
                 loraPacket.replace("WIDE1-1", gatewayConfig.igate.callsign + "*");
               }                      
