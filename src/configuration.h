@@ -18,12 +18,12 @@ class ConfigurationCommon {
 public:
   class Solar {
   public:
-    Solar() : disable_charging_below_temp(-4), disable_digipeating_above_temp(50.0), disable_digipeating_below_volt(3.3),increase_status_loc_tx_interval_below_volt(3.0) {
+    Solar() : disable_charging_below_temp(-4), disable_digipeating_above_temp(55.0), disable_digipeating_below_volt(3.5),deep_sleep_below_volt(3.5) {
     }
     float disable_charging_below_temp;
     float disable_digipeating_above_temp;
     float disable_digipeating_below_volt;
-    float increase_status_loc_tx_interval_below_volt;
+    float deep_sleep_below_volt;
   };  
   class Display {
   public:

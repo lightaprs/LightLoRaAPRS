@@ -45,9 +45,6 @@ void setupLoRa()
 {
     show_display_print("LoRa setup...");
     pinMode(LORA_VCC_PIN,OUTPUT);  
-    //pinMode(LORA_TX_PIN,OUTPUT);
-    //pinMode(LORA_RX_PIN,OUTPUT);
-
     digitalWrite(LORA_VCC_PIN,HIGH);
     delay(500);
 

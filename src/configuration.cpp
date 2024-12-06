@@ -43,9 +43,9 @@ ConfigurationCommon ConfigurationManagement::readCommonConfiguration() {
     conf.humiditySensorCorrection = data["humidity_sensor_correction"] | 0;
 
     conf.solar.disable_charging_below_temp                = data["solar"]["disable_charging_below_temp"] | -4.0;
-    conf.solar.disable_digipeating_above_temp             = data["solar"]["disable_digipeating_above_temp"] | 50.0;
-    conf.solar.disable_digipeating_below_volt             = data["solar"]["disable_digipeating_below_volt"] | 3.3;
-    conf.solar.increase_status_loc_tx_interval_below_volt = data["solar"]["increase_status_loc_tx_interval_below_volt"] | 3.0;
+    conf.solar.disable_digipeating_above_temp             = data["solar"]["disable_digipeating_above_temp"] | 55.0;
+    conf.solar.disable_digipeating_below_volt             = data["solar"]["disable_digipeating_below_volt"] | 3.5;
+    conf.solar.deep_sleep_below_volt                      = data["solar"]["deep_sleep_below_volt"] | 3.4;
 
     conf.display.always_on          = data["display"]["always_on"] | true;
     conf.display.display_timeout    = data["display"]["display_timeout"] | 10;
@@ -83,7 +83,7 @@ void ConfigurationManagement::writeCommonConfiguration(ConfigurationCommon conf)
     data["solar"]["disable_charging_below_temp"]                  = conf.solar.disable_charging_below_temp;
     data["solar"]["disable_digipeating_above_temp"]               = conf.solar.disable_digipeating_above_temp;
     data["solar"]["disable_digipeating_below_volt"]               = conf.solar.disable_digipeating_below_volt;
-    data["solar"]["increase_status_loc_tx_interval_below_volt"]   = conf.solar.increase_status_loc_tx_interval_below_volt;
+    data["solar"]["deep_sleep_below_volt"]                        = conf.solar.deep_sleep_below_volt;
 
     data["display"]["always_on"]          = conf.display.always_on;
     data["display"]["display_timeout"]    = conf.display.display_timeout;

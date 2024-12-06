@@ -15,12 +15,11 @@ extern logging::Logger logger;
 extern ConfigurationRouter routerConfig;
 extern ConfigurationCommon commonConfig;
 
-#define ROUTER_STATUS_BEACON_INTERVAL 900
-#define ROUTER_LOCATION_BEACON_INTERVAL 1200
+#define ROUTER_STATUS_BEACON_INTERVAL 1200
+#define ROUTER_LOCATION_BEACON_INTERVAL 2400
 #define ROUTER_RESTART_INTERVAL 259200
-
-int16_t statusBeaconInterval = 0;
-int16_t locationBeaconInterval = 0;
+#define SOLAR_DEEP_SLEEP_INTERVAL 14400
+//#define SOLAR_DEEP_SLEEP_INTERVAL 3600
 
 static uint16_t digipeated_packet_count=0;
 static float rssi;
@@ -175,8 +174,8 @@ void tasksendRXPacketsToQueueR(void * parameter){
 void tasksendRouterLocationToRF(void * parameter){
 
   logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "tasksendRouterLocationToRF", "xPortGetCoreID: %d", xPortGetCoreID());
-  long last_router_loc_packet_time = -1200000;
-  long last_router_status_packet_time = -800000;
+  long last_router_loc_packet_time = -2400000;
+  long last_router_status_packet_time = -1150000;
   long last_router_startup_packet_time = millis();
   for(;;){
     esp_task_wdt_reset();
@@ -217,17 +216,8 @@ void tasksendRouterLocationToRF(void * parameter){
       }      
     } 
 
-    if (commonConfig.deviceModel == device_lightgateway_plus_1_0 && readBatteryVoltage() != 0 
-      && readBatteryVoltage() < commonConfig.solar.increase_status_loc_tx_interval_below_volt ) {
-        statusBeaconInterval = 3600;
-        locationBeaconInterval = 3600;
-    } else {
-        statusBeaconInterval = ROUTER_STATUS_BEACON_INTERVAL;
-        locationBeaconInterval = ROUTER_LOCATION_BEACON_INTERVAL;
-    } 
-
     //Sending Router location to RF    
-    if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > locationBeaconInterval * 1000))
+    if (routerConfig.digi.sendDigiLoc && (millis() - last_router_loc_packet_time > ROUTER_LOCATION_BEACON_INTERVAL * 1000))
     {
       display_toggle(true);
       show_display("\r\n  Loc TX",0,2);
@@ -237,7 +227,7 @@ void tasksendRouterLocationToRF(void * parameter){
     }
 
     //Sending Router status message to RF 
-    if (millis() - last_router_status_packet_time > statusBeaconInterval * 1000) {
+    if (millis() - last_router_status_packet_time > ROUTER_STATUS_BEACON_INTERVAL * 1000) {
       display_toggle(true);
       show_display("\r\nStatus TX",0,2);
       String statusMessage = getRouterStatusAPRSMessage();
@@ -246,7 +236,21 @@ void tasksendRouterLocationToRF(void * parameter){
       routerTX(statusMessage);
       last_router_status_packet_time = millis();
     }    
-    
+
+    if (commonConfig.deviceModel == device_lightgateway_plus_1_0 && readBatteryVoltage() != 0 
+      && readBatteryVoltage() < commonConfig.solar.deep_sleep_below_volt && last_router_status_packet_time > 0 ) {
+        esp_sleep_enable_timer_wakeup(SOLAR_DEEP_SLEEP_INTERVAL * uS_TO_S_FACTOR);
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "TaskRouterSolar", "ESP32 deep sleep timer wakeup enabled...");      
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "TaskRouterSolar", "Sleeping (deep) for %d seconds", SOLAR_DEEP_SLEEP_INTERVAL);
+        Serial.flush();
+        delay(100);
+        digitalWrite(LORA_VCC_PIN,LOW);//disable LoRa module
+        digitalWrite(SOLAR_CHARGE_DISABLE_PIN,LOW); //enable charging
+        display_toggle(false);//disable display
+        delay(1000);
+        esp_deep_sleep_start();   
+    } 
+
     if (millis() - last_router_startup_packet_time > ROUTER_RESTART_INTERVAL * 1000) {
       esp_restart();
     }       

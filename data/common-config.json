@@ -9,7 +9,7 @@
 		"disable_charging_below_temp": -4.0,
     	"disable_digipeating_above_temp": 55.0,
 		"disable_digipeating_below_volt": 3.5,
-		"increase_status_loc_tx_interval_below_volt": 3.3
+		"deep_sleep_below_volt": 3.5
     },
 	"display": {
         "always_on": true,

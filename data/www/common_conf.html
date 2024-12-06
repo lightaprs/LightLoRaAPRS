@@ -61,8 +61,8 @@
                     <input type="text" id="disable_digipeating_below_volt" name="disable_digipeating_below_volt">
                 </div>
                 <div class="form-group">
-                    <label for="increase_status_loc_tx_interval_below_volt">Increase Status Interval Below Voltage:</label>
-                    <input type="text" id="increase_status_loc_tx_interval_below_volt" name="increase_status_loc_tx_interval_below_volt">
+                    <label for="deep_sleep_below_volt">Deep Sleep Below Voltage:</label>
+                    <input type="text" id="deep_sleep_below_volt" name="deep_sleep_below_volt">
                 </div>                                         
             </div>                
             <div class="section">
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('disable_charging_below_temp').value = data.solar.disable_charging_below_temp;
             document.getElementById('disable_digipeating_above_temp').value = data.solar.disable_digipeating_above_temp;
             document.getElementById('disable_digipeating_below_volt').value = data.solar.disable_digipeating_below_volt;
-            document.getElementById('increase_status_loc_tx_interval_below_volt').value = data.solar.increase_status_loc_tx_interval_below_volt;
+            document.getElementById('deep_sleep_below_volt').value = data.solar.deep_sleep_below_volt;
 
             document.getElementById('always_on').checked = data.display.always_on;
             document.getElementById('display_timeout').value = data.display.display_timeout;
@@ -170,10 +170,10 @@ document.getElementById('updateForm').addEventListener('submit', function(event)
     temperature_sensor_correction: parseFloat(document.getElementById('temperature_sensor_correction').value),
     humidity_sensor_correction: parseFloat(document.getElementById('humidity_sensor_correction').value),
     solar: {
-        disable_charging_below_temp: document.getElementById('disable_charging_below_temp').value,
-        disable_digipeating_above_temp: document.getElementById('disable_digipeating_above_temp').value,
-        disable_digipeating_below_volt: document.getElementById('disable_digipeating_below_volt').value,
-        increase_status_loc_tx_interval_below_volt: document.getElementById('increase_status_loc_tx_interval_below_volt').value        
+        disable_charging_below_temp: parseFloat(document.getElementById('disable_charging_below_temp').value),
+        disable_digipeating_above_temp: parseFloat(document.getElementById('disable_digipeating_above_temp').value),
+        disable_digipeating_below_volt: parseFloat(document.getElementById('disable_digipeating_below_volt').value),
+        deep_sleep_below_volt: parseFloat(document.getElementById('deep_sleep_below_volt').value),        
     },    
     display: {
         always_on: document.getElementById('always_on').checked,
