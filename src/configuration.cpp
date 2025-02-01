@@ -234,7 +234,7 @@ ConfigurationGateway ConfigurationManagement::readGatewayConfiguration() {
     conf.wifi.ssid              = data["wifi"]["ssid"].as<String>();
     conf.wifi.password          = data["wifi"]["password"].as<String>();
 
-    conf.network.DHCP           = data["network"]["DHCP"]  | true;
+    conf.network.DHCP           = data["network"]["dhcp"]  | true;
     conf.network.static_.ip.fromString(data["network"]["static"]["ip"].as<String>());
     conf.network.static_.subnet.fromString(data["network"]["static"]["subnet"].as<String>());
     conf.network.static_.gateway.fromString(data["network"]["static"]["gateway"].as<String>());

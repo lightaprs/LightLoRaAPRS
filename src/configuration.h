@@ -47,7 +47,7 @@ public:
     bool crc;
 
   };
-  ConfigurationCommon() : debug(false), deviceMode(mode_tracker), deviceModel(device_lighttracker_plus_1_0), metricSystem(1), tempSensorCorrection(-5.0), humiditySensorCorrection(20){
+  ConfigurationCommon() : debug(false), deviceMode(mode_tracker), deviceModel(device_lighttracker_plus_1_0), metricSystem(1), tempSensorCorrection(0), humiditySensorCorrection(0){
   }
   String            version;
   bool              debug;
